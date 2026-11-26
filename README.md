@@ -4,5 +4,5 @@ Este repositório guarda só a página montada do Eskla, para testes no GitHub P
 O código-fonte fica no repositório privado do projeto.
 
 - Endereço: https://silverzyn.github.io/eskla-teste/
-- Versão no ar: Eskla 0.29.0 (base Formiga v29, com correção de segurança).
+- Versão no ar: cópia fiel do `EscalaLocal-Pro.html` do repositório oficial ElitonKresc/eskla (Formiga v29).
 - Use apenas dados fictícios. Nesta versão, os dados e o login ficam no navegador de quem usa.
