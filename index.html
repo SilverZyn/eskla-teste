@@ -1,114 +1,4 @@
 <!DOCTYPE html>
-<!--
-EscalaLocal Pro v29 (Eskla Formiga) — alterações em relação à v28
-- Troca direto no painel: clicou na caixinha da pessoa, abre "⇄ Trocar com outra pessoa" com a lista de quem dá pra trocar
-  sem bagunçar a escala (sem quebrar descanso de 11h, dias seguidos, domingo nem restrição). Quem não dá aparece separado, com o motivo.
-  · Troca de horário: os dois trabalham no dia e trocam o turno.
-  · Troca de folga: os dois invertem esse dia e outro da mesma semana, pra cada um continuar com 2 folgas.
-  · Avisa (sem bloquear) quando a função, as horas ou o domingo mudam.
-- Trocas já feitas: ⇄ na janela da caixinha com "Desfazer troca", e um quadro "Trocas do mês" no Painel. A aba "Trocas pontuais" saiu do menu.
-- Mudar a folga pra outro dia (sem trocar com ninguém): clicou na folga, "↔ Mudar a folga pra outro dia" mostra os dias da mesma semana
-  em que a pessoa pode folgar; o app faz os dois ajustes juntos e avisa se o dia que perde a pessoa fica abaixo do mínimo. "Desfazer" volta os dois.
-- Turnos padrão: texto explicando quando usar, com exemplo de mercado.
-
-=== histórico v28 ===
-EscalaLocal Pro v28 (Eskla Formiga) — alterações em relação à v27
-- Rodízio de domingo: quem não trabalha aos domingos não ocupa mais vez na fila. Antes a vez dessa pessoa caía no 1º da fila,
-  e em loja com 2 pessoas que não fazem domingo, metade da equipe pegava o dobro de domingos (achado na Farmácia Ideal - Praça).
-  Loja em que todo mundo faz domingo não muda nada.
-- Restrições de dias e horários: em vez de um botão com o nome de cada pessoa, uma lista em ordem alfabética pra escolher
-  a pessoa e um botão só "+ Adicionar restrição". Funciona igual com 5 ou 100+ funcionários.
-
-=== histórico v27 ===
-EscalaLocal Pro v27 (Eskla Formiga) — alterações em relação à v26
-- Nova aba Cadastros → Acessos: quem acessa a empresa. O dono (ou o Master) cria um login pra cada gerente; todos mexem na mesma escala.
-  Dá pra redefinir a senha de quem tem acesso e tirar o acesso de quem saiu da loja. Ninguém mexe no acesso do Master nem tira o próprio acesso.
-- "Minha senha": qualquer pessoa troca a própria senha (antes só o Master redefinia a do cliente).
-- Login novo: 3 a 30 letras, números, ponto, traço ou sublinhado, sem espaço.
-- Estrutura pronta pra versão web: toda mudança de usuário passa pelas funções acesso* (criar, redefinir senha, remover, trocar minha senha);
-  na versão com nuvem é só trocar o corpo delas por chamadas ao servidor.
-- Por enquanto os dados continuam no navegador: o acesso funciona no computador onde foi criado.
-- Horários: dia curto (ex.: 4h de quem faz 36h) não cai mais no mesmo dia pra todo mundo; o app espalha pela semana.
-- Horários: os dias inteiros cobrem da abertura ao fechamento e os dias curtos reforçam alternando manhã e fim do dia.
-  Antes, em semana com dia curto, ninguém entrava na hora de abrir (ex.: loja abre 7h e o primeiro chegava 8h) e os curtos caíam todos no fim do dia.
-  Nas lojas de teste, 24 meses: dias sem ninguém na abertura caíram de ~104 pra 0. As folgas não mudam, só horários.
-
-=== histórico v26 ===
-EscalaLocal Pro v26 (Eskla Formiga) — alterações em relação à v25
-- Imprimir o mês inteiro: a impressão sai com todos os dias do mês (não corta mais no dia 17), em paisagem, com um bloco por semana.
-- Impressão sem página em branco no final (vale para escala, aviso, espelho e resumo). O resumo imprime em tabela, não mais no formato de celular.
-- Painel: ao trocar de mês, mantém o modo de visualização (uma semana ou o mês todo). Avançando abre na 1ª semana do mês novo; voltando, na última. Vale também no Aviso e no WhatsApp.
-- Menu novo "Cadastros" (Equipe e apoio, Funções, Feriados, Empresa), separado de "Configurações" (Horários da loja, Regras da escala, Turnos padrão).
-- Folga de feriado sugerida: até 3 opções por pessoa, a melhor primeiro; procura nas semanas seguintes ao feriado (não só na semana dele) e ordena pelo melhor para a loja (mais gente sobrando, menos gente de folga), não pelo mais cedo. Caixinha "Por que esse dia?" explica a escolha. "Sugerir de novo" avisa se as datas continuam as mesmas ou mudaram. Dá para aceitar qualquer uma das opções.
-- Rodízio de domingos: ninguém pega 3 domingos seguidos (Lei 10.101, art. 6º: no comércio, folga em pelo menos 1 domingo a cada 3 semanas). Quem já fez 2 seguidos vai pro fim da fila; vale a partir de "Rodízio começa em". Se não tiver outro jeito (ou num mês fechado), o Painel avisa.
-- Aviso de folga de feriado esquecida: passou de 30 dias do feriado e a folga não foi tirada.
-- Feriados: "Replicar" sempre parte do último ano cadastrado (ex.: 2027 → 2028). Aviso quando o mês é de um ano sem nenhum feriado cadastrado.
-- Férias e ausências: a coluna de impacto diz em quantos dias a loja fica abaixo do mínimo (antes dizia sempre "sem violar regras").
-- Painel: "Cobertura da loja" conta os dias com o mínimo de gente; "Pra resolver" separa avisos importantes de lembretes; "todos revezam domingo".
-- Equipe: colunas na ordem do que mais se usa (nome, apelido, função, carga, domingos, status; datas e WhatsApp depois). Funções e Feriados sem texto cortado. Resumo com vírgula (4,4 semanas).
-- Testado em outros ramos (mercado, distribuidora, loja de roupa, imobiliária). Correções no motor:
-  · Descanso de 11h entre jornadas (CLT art. 66) também quando não há turnos padrão: quem fechou a loja não abre no dia seguinte; se não tiver jeito (ex.: domingo curto), entra mais tarde.
-  · Intervalo (CLT art. 71): dia de 4h a 6h tem pausa de 15 min; "Completar as horas" não estica um dia sem a pausa certa; janela curta (ex.: sábado de 4h) não perde 1h com almoço.
-  · Dia curto da semana (ex.: sábado só de manhã) recebe as folgas primeiro, pra semana fechar a carga nos dias inteiros.
-  · Nova opção "Horário de entrada da equipe" (Regras → Horários e restrições): hora cheia (7h, 8h, 9h…), meia em meia hora ou 15 em 15 min. Empresa nova vem com meia hora; empresa que já existia continua com 15 min. Quem fecha a loja sai no fechamento, mesmo que seja horário quebrado (ex.: 19h30).
-  · Painel: "loja fecha domingo" quando não abre; aviso de horas abaixo da carga explica o que fazer quando "Completar" já está ligado.
-- Conferência de cliente novo:
-  · Empresa recém-criada não trava mais ao abrir Configurações (antes só voltava ao normal depois de recarregar a página).
-  · Novo aviso: dia marcado como aberto sem horário de abertura e fechamento.
-  · Função sem ninguém cadastrado mostra só o aviso de configuração, sem repetir um aviso por dia do mês.
-- Marca Eskla Formiga: tela de login refeita com o logotipo, selo discreto da formiga no canto de baixo de todas as telas (não sai na impressão) e ícone na aba do navegador.
-- Empresa nova já vem com "Completar as horas da semana" ligado. Empresa que já existia continua como estava.
-- Campos essenciais com asterisco laranja (horário de abertura e fechamento, mínimo do dia, nome, função e carga da pessoa, nome e mínimo da função). Não trava: se faltar, o campo fica com contorno laranja e aparece em "Pra resolver".
-
-=== histórico v25 ===
-EscalaLocal Pro v25 (Eskla Formiga) — alterações em relação à v24
-- Nome na tela: Eskla Formiga · escala pronta, dentro da lei.
-- Folga de feriado sugerida (Compensações): para cada folga de feriado pendente, o app procura o dia mais próximo depois do feriado em que a pessoa trabalharia e a loja continua com o mínimo. Cada dia é testado recalculando a escala (a semana não pode ganhar falta de gente nem folga sem lugar). "Aceitar" ou "Aceitar todas" lança a folga compensatória. Só feriado "revezamento + folga compensatória" gera folga.
-- Feriado "revezamento + pagamento": nova lista em Compensações com quem trabalhou no feriado no mês, para pagar em dobro (não gera folga).
-- Rodízio de domingos/feriados separado por função (Regras → Domingos e feriados, opcional): cada função reveza só entre os seus, usando o mínimo de domingo/feriado de cada função. Desligado, nada muda.
-=== histórico v24 ===
-EscalaLocal Pro v24 — alterações em relação à v23
-- Trava de período: no Painel, "Fechar mês" guarda a escala do mês como histórico. Depois de fechado, mudar regras, ordem do rodízio, equipe, feriados ou ajustes não altera mais esse mês; os dias fechados não abrem para edição. "Reabrir mês" desfaz.
-- A escala continua a partir do mês fechado: dias seguidos, sábado após domingo e o rodízio de domingos/feriados levam em conta o que ficou guardado. Se a ordem do rodízio, a equipe ou o início do rodízio mudarem depois do fechamento, a fila recomeça logo depois de quem trabalhou no último domingo/feriado fechado.
-- Equipe: datas de admissão e desligamento (opcionais). Antes da admissão e depois do desligamento a pessoa fica fora: células vazias na escala, fora dos relatórios, do espelho, do WhatsApp e do rodízio de domingos/feriados (a vez passa para o próximo, sem ninguém repetir). Incluir alguém com admissão futura ou desligar alguém não muda os meses de antes. Quem fica fora o mês inteiro nem aparece na lista do mês.
-- Quem entra no começo do mês seguinte já aparece na última semana do mês na tela (ex.: admitido em 01/01 aparece na semana de 27/12 a 02/01, com os dias de dezembro vazios), mas não entra nos relatórios do mês.
-- Mês fechado mostra só quem estava na escala quando foi fechado: quem for incluído depois, mesmo sem data de admissão, conta como admitido no mês seguinte ao fechado.
-- Nome do programa na tela: Eskla, com o slogan "Escala pronta, dentro da lei" (login, menu lateral, título da aba e rodapé dos relatórios). O nome do arquivo e os dados salvos continuam os mesmos.
-- Textos de ajuda reescritos em linguagem simples, com exemplos que abrem e fecham ("Ver exemplo", "Como funciona") nas Regras, Horários da loja, Funções, Feriados, Equipe e Restrições. Alertas também ficaram mais diretos.
-- Confirmações (fechar/reabrir mês, excluir colaborador, função, empresa ou acesso, limpar ajustes, lançar folga sem saldo, restaurar backup, apagar dados) agora aparecem numa janela dentro do próprio app. A janela padrão do navegador é bloqueada em alguns visualizadores e o botão parecia não fazer nada.
-=== histórico v23 ===
-EscalaLocal Pro v23 — alterações em relação à v22
-- Equipe: nome completo, apelido e data de nascimento. O apelido aparece na escala, no painel, nos alertas e no WhatsApp (vazio = nome completo); o nome completo vai no espelho e nos relatórios.
-- Nova regra opcional "Folga no aniversário do colaborador" (Regras da escala → Folgas), com mês de início para não mexer no passado: na semana do aniversário, uma das folgas cai no aniversário, na frente do feriado e do sábado após domingo; aniversário em domingo/feriado tira a pessoa da escala do dia; quem folgou no domingo em semana com feriado (priorizado) ganha a folga do aniversário a mais; a cobertura mínima vem primeiro e o app avisa quando não deu.
-- Regras da escala divididas em sub-abas: Jornada e limites · Folgas · Domingos e feriados · Horários e restrições.
-- Funções e setores sugeridos conforme o ramo da empresa (lista ao clicar no campo, sempre aceitando outra). Novos ramos: Loja de roupas / calçados, Distribuidora de bebidas, Imobiliária.
-- Feriados: "Replicar para o próximo ano" (datas móveis recalculadas pela Páscoa) e "Atualizar nacionais" (inclui os que faltam e corrige datas móveis).
-- Datas de nascimento e das restrições: campo de digitar direto (dd/mm/aaaa), grava ao sair do campo ou no Enter; o cursor não volta mais para o começo.
-- Limite de dias seguidos: no domingo, quando ninguém da função tem fôlego, entra quem vem de corrida menor; e, só se for para não passar do limite, a folga pode cair num dia bloqueado (ex.: segunda), com aviso. Corrige casos de 7 dias seguidos e falta de farmacêutico na empresa exemplo (set–nov/2026).
-- Novo campo "Rodízio começa em" (Regras → Domingos e feriados): o 1º da lista trabalha no primeiro domingo/feriado a partir dessa data; mostra a prévia dos próximos domingos e feriados.
-=== histórico v22 ===
-EscalaLocal Pro v22 — alterações em relação à v21
-- Novo campo "Controle de folgas de feriado começa em" (Regras da escala): feriados trabalhados antes desse mês não geram folga a compensar. O alerta passa a listar os feriados trabalhados.
-=== histórico v21 ===
-EscalaLocal Pro v21 — alterações em relação à v20
-- Restrições por colaborador (faculdade, estágio): dia em que não pode trabalhar, horário de saída até certa hora ou de entrada a partir de certa hora, com período de validade e motivo. Aba Equipe.
-- Tratamento das horas não trabalhadas, configurável na empresa e por restrição: abonar (não desconta), descontar ou compensar em outros dias. Resumo mensal mostra horas abonadas, a descontar e a compensar.
-- Dia de restrição aparece como "Restr." (roxo) e não conta como folga semanal.
-- Correção: semana com feriado deixava 3 folgas para uma pessoa (ex.: 20–26/12); o sábado após domingo trabalhado agora é preferência, não obrigação.
-- Campos de horário da loja e dos turnos: digitação simples (0830 vira 08:30), Tab avança, sem perder o foco.
-- Mantido da v20: configurações em tela única, funções, turnos padrão, ordem de leitura das regras.
-=== histórico v20 ===
-EscalaLocal Pro v20 — alterações em relação à v19
-- Configurações em uma tela só, com abas: Empresa · Horários da loja · Regras da escala · Turnos padrão · Funções · Equipe e apoio · Feriados. Painel "Conferência da configuração" avisa quando mínimos, equipe e folgas não fecham.
-- Funções editáveis na própria tabela, com: mínimo de domingo próprio, janela de atuação que pode ficar fora do horário da loja (padaria, estoque, entrega), limite de horas por dia próprio (ex.: motorista, com acordo).
-- Turnos padrão podem valer só para certas funções e certos dias da semana.
-- Ordem de leitura das regras documentada e configurável: as folgas semanais nunca são sacrificadas; o rodízio de domingo/feriado cumpre primeiro o mínimo de cada função; se não couber, cede por último o mínimo escolhido (função ou geral).
-- Teto de folgas por dia automático (vazio = divide as folgas da equipe pelos dias abertos).
-- Apoio fora da escala (sócios/família): aparece como lembrete nos dias com pouca gente, sem entrar no rodízio.
-- Opção "Completar a carga semanal" quando um dia fica curto (ex.: domingo de meio expediente). Desligada por padrão; sem ela, o app avisa a semana abaixo da carga.
-- Descanso entre jornadas respeitado também entre turnos gerais e turnos próprios de função.
-- Mantido da v19: motor em cadeia, rodízio de domingo/feriado, turnos padrão, alertas semanais.
--->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
@@ -462,6 +352,7 @@ details.ex ul, details.ex ol { margin: 4px 0 0; padding-left: 18px; }
 .troca-op:first-of-type { margin-top: 6px; }
 .troca-av { font-size: 12px; color: #B45309; margin-top: 2px; }
 .troca-op > button { flex-shrink: 0; white-space: nowrap; }
+
 </style>
 </head>
 <body>
@@ -505,6 +396,10 @@ const LIMITES_JORNADA = [
 ];
 const limiteLegalSemanal = iso => { let h = 44; for (const l of LIMITES_JORNADA) if (iso >= l.desde) h = l.horas; return h; };
 const $ = id => document.getElementById(id);
+// Texto que entra dentro de um onclick="f('...')": primeiro vira texto seguro de JavaScript
+// (aspas, barra e quebras viram \uXXXX), depois é escapado para HTML.
+// Impede que um id adulterado (por exemplo, num backup importado) execute código.
+const jsa = s => esc(String(s ?? "").replace(/[\\'"`\n\r\u2028\u2029<>&]/g, c => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0")));
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const uid = p => p + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const pad = n => String(n).padStart(2, "0");
@@ -2443,7 +2338,7 @@ function renderSidebar() {
       ["Relatórios", [["aviso", "Aviso semanal"], ["espelho", "Espelho mensal"], ["resumo", "Horas e folgas"], ["whatsapp", "Mensagens WhatsApp"]]]
     ];
     htmlNav += grupos.map(([g, itens]) => `<div class="nav-group"><div class="nav-label">${g}</div>${itens.map(([id, nome]) =>
-      `<button class="nav-btn ${view === id ? "active" : ""}" onclick="ir('${id}')" title="${nome}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[id]}</svg><span>${nome}</span>${id === "painel" && nErr ? `<em class="count">${nErr}</em>` : ""}</button>`).join("")}</div>`).join("");
+      `<button class="nav-btn ${view === id ? "active" : ""}" onclick="ir('${jsa(id)}')" title="${nome}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[id]}</svg><span>${nome}</span>${id === "painel" && nErr ? `<em class="count">${nErr}</em>` : ""}</button>`).join("")}</div>`).join("");
 
     htmlNav += `<div class="nav-group"><div class="nav-label">Cadastros e configurações</div>
       <button class="nav-btn ${view === "cadastros" ? "active" : ""}" onclick="ir('cadastros')" title="Equipe, funções, feriados e empresa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON.equipe}</svg><span>Cadastros</span></button>
@@ -2667,12 +2562,12 @@ function viewAcessos() {
   const eu = usuarioAtual(), lista = usuariosDaEmpresa();
   const linhas = lista.map(u => `<tr><td data-l="Nome"><b>${esc(u.nome)}</b>${u.id === eu?.id ? ' <span class="badge b-blue">você</span>' : ""}</td><td data-l="Login"><code>${esc(u.login)}</code></td>
     <td data-l="Outras lojas">${(u.empresaIds || []).length > 1 ? `${u.empresaIds.length - 1} outra(s)` : "—"}</td>
-    <td data-l="Nova senha">${u.id === eu?.id ? '<span class="help">Troque no quadro abaixo</span>' : `<input type="password" autocomplete="new-password" placeholder="Nova senha" style="width:140px" onchange="telaRedefinirAcesso('${u.id}',this)">`}</td>
-    <td>${u.id === eu?.id ? "" : `<button class="btn-danger btn-sm" onclick="telaRemoverAcesso('${u.id}')">Tirar acesso</button>`}</td></tr>`).join("") || `<tr><td colspan="5" class="empty">Ninguém além do administrador acessa esta empresa ainda.</td></tr>`;
+    <td data-l="Nova senha">${u.id === eu?.id ? '<span class="help">Troque no quadro abaixo</span>' : `<input type="password" autocomplete="new-password" placeholder="Nova senha" style="width:140px" onchange="telaRedefinirAcesso('${jsa(u.id)}',this)">`}</td>
+    <td>${u.id === eu?.id ? "" : `<button class="btn-danger btn-sm" onclick="telaRemoverAcesso('${jsa(u.id)}')">Tirar acesso</button>`}</td></tr>`).join("") || `<tr><td colspan="5" class="empty">Ninguém além do administrador acessa esta empresa ainda.</td></tr>`;
   return `<div class="card"><div class="card-h"><div><h2>Quem acessa ${esc(nomeEmp())}</h2><div class="sub">Cada pessoa tem o próprio login e senha, e todos mexem na mesma escala.${ex("Ex.: a loja tem dois gerentes, Ana e Bruno. Cadastre um acesso pra cada um. Se Ana muda uma folga, Bruno vê a mudança quando entrar. Quando alguém sair da loja, clique em <b>Tirar acesso</b>.")}</div></div></div>
     <div class="grid g4">
       <div class="field"><label for="acNome" class="req">Nome</label><input id="acNome" placeholder="Ex.: Ana (gerente)"></div>
-      <div class="field"><label for="acLogin" class="req">Login</label><input id="acLogin" autocomplete="off" placeholder="Ex.: ana.ideal"></div>
+      <div class="field"><label for="acLogin" class="req">Login</label><input id="acLogin" autocomplete="off" placeholder="Ex.: ana.loja"></div>
       <div class="field"><label for="acSenha" class="req">Senha</label><input id="acSenha" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres"></div>
       <div class="field" style="align-self:end"><button class="btn-primary" onclick="telaCriarAcesso()">+ Criar acesso</button></div>
     </div>
@@ -2803,12 +2698,12 @@ VIEWS.empresas_master = () => {
     const nome = emp.empresa.fantasia || emp.empresa.razao || "Empresa sem nome";
     const donos = clientes.filter(u => (u.empresaIds || []).includes(emp.id)).map(u => u.login).join(", ");
     const ativa = E && E.id === emp.id;
-    return `<tr><td data-l="Empresa"><b>${esc(nome)}</b><div class="meta">${esc(emp.empresa.cnpj || "CNPJ não informado")} · ${emp.equipe.length} colaborador(es)</div></td><td data-l="Clientes vinculados">${donos ? `<span class="badge b-blue">${esc(donos)}</span>` : `<span class="help">Nenhum cliente vinculado</span>`}</td><td data-l="Ação" style="text-align:right"><button class="btn-ghost btn-sm" onclick="trocarEmpresa('${emp.id}');ir('painel')">${ativa ? "Abrir painel" : "Selecionar e abrir"}</button></td></tr>`;
+    return `<tr><td data-l="Empresa"><b>${esc(nome)}</b><div class="meta">${esc(emp.empresa.cnpj || "CNPJ não informado")} · ${emp.equipe.length} colaborador(es)</div></td><td data-l="Clientes vinculados">${donos ? `<span class="badge b-blue">${esc(donos)}</span>` : `<span class="help">Nenhum cliente vinculado</span>`}</td><td data-l="Ação" style="text-align:right"><button class="btn-ghost btn-sm" onclick="trocarEmpresa('${jsa(emp.id)}');ir('painel')">${ativa ? "Abrir painel" : "Selecionar e abrir"}</button></td></tr>`;
   }).join("") || `<tr><td colspan="3" class="empty">Nenhuma empresa cadastrada ainda.</td></tr>`;
 
   const usrRows = clientes.map(u => {
-    const checks = listaEmp.map(emp => `<label class="check" style="font-size:12px"><input type="checkbox" ${(u.empresaIds || []).includes(emp.id) ? "checked" : ""} onchange="toggleEmpresaUsuario('${u.id}','${emp.id}',this.checked)"> ${esc(emp.empresa.fantasia || emp.empresa.razao || "Sem nome")}</label>`).join("") || `<span class="help">Crie uma empresa primeiro</span>`;
-    return `<tr><td data-l="Cliente"><b>${esc(u.nome)}</b></td><td data-l="Login"><code>${esc(u.login)}</code></td><td data-l="Redefinir senha"><input type="password" autocomplete="new-password" placeholder="Nova senha" style="width:130px" onchange="alterarSenhaCliente('${u.id}',this.value,this)"></td><td data-l="Empresas liberadas"><div style="display:grid;gap:4px">${checks}</div></td><td><button class="btn-danger btn-sm" onclick="excluirCliente('${u.id}')">Remover</button></td></tr>`;
+    const checks = listaEmp.map(emp => `<label class="check" style="font-size:12px"><input type="checkbox" ${(u.empresaIds || []).includes(emp.id) ? "checked" : ""} onchange="toggleEmpresaUsuario('${jsa(u.id)}','${jsa(emp.id)}',this.checked)"> ${esc(emp.empresa.fantasia || emp.empresa.razao || "Sem nome")}</label>`).join("") || `<span class="help">Crie uma empresa primeiro</span>`;
+    return `<tr><td data-l="Cliente"><b>${esc(u.nome)}</b></td><td data-l="Login"><code>${esc(u.login)}</code></td><td data-l="Redefinir senha"><input type="password" autocomplete="new-password" placeholder="Nova senha" style="width:130px" onchange="alterarSenhaCliente('${jsa(u.id)}',this.value,this)"></td><td data-l="Empresas liberadas"><div style="display:grid;gap:4px">${checks}</div></td><td><button class="btn-danger btn-sm" onclick="excluirCliente('${jsa(u.id)}')">Remover</button></td></tr>`;
   }).join("") || `<tr><td colspan="5" class="empty">Nenhum usuário cliente cadastrado.</td></tr>`;
 
   return `
@@ -2826,7 +2721,7 @@ VIEWS.empresas_master = () => {
     <div class="card-h"><div><h2>2. Criar usuário e senha para o cliente</h2><div class="sub">O cliente acessa apenas as empresas marcadas para ele e não pode criar novas empresas.</div></div></div>
     <div class="grid g4">
       <div class="field"><label for="uNome">Nome do cliente / responsável</label><input id="uNome" placeholder="Ex.: Maria (Farmácia Exemplo)"></div>
-      <div class="field"><label for="uLogin">Usuário (login)</label><input id="uLogin" placeholder="Ex.: farmaciaideal"></div>
+      <div class="field"><label for="uLogin">Usuário (login)</label><input id="uLogin" placeholder="Ex.: lojaexemplo"></div>
       <div class="field"><label for="uSenha">Senha</label><input id="uSenha" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres"></div>
       <div class="field"><label for="uEmp">Empresa inicial</label><select id="uEmp">${opt("", "Selecione…", "")}${listaEmp.map(emp => opt(emp.id, emp.empresa.fantasia || emp.empresa.razao || "Empresa sem nome")).join("")}</select></div>
     </div>
@@ -2882,7 +2777,7 @@ VIEWS.painel = () => {
     [E.equipe.length > 0, "Cadastre a equipe e vincule cada pessoa à sua função", "equipe"]
   ];
   const feitos = passos.filter(p => p[0]).length;
-  const onb = feitos < passos.length ? `<div class="card onb"><div class="card-h"><div><h2>Primeiros passos</h2><div class="sub">Configure uma vez e a escala sai sozinha, cobrindo abertura, almoço e fechamento.</div></div><span class="badge b-blue">${feitos} de ${passos.length}</span></div><ol class="steps">${passos.map(([ok, t, v]) => `<li class="${ok ? "ok" : ""}"><span>${ok ? "✓" : ""}</span>${ok ? t : `<a href="#" onclick="ir('${v}');return false;" style="color:inherit">${t}</a>`}</li>`).join("")}</ol></div>` : "";
+  const onb = feitos < passos.length ? `<div class="card onb"><div class="card-h"><div><h2>Primeiros passos</h2><div class="sub">Configure uma vez e a escala sai sozinha, cobrindo abertura, almoço e fechamento.</div></div><span class="badge b-blue">${feitos} de ${passos.length}</span></div><ol class="steps">${passos.map(([ok, t, v]) => `<li class="${ok ? "ok" : ""}"><span>${ok ? "✓" : ""}</span>${ok ? t : `<a href="#" onclick="ir('${jsa(v)}');return false;" style="color:inherit">${t}</a>`}</li>`).join("")}</ol></div>` : "";
   const horasTot = equipe.reduce((s, c) => s + resumoCol(c).horas, 0);
   const abertos = diasMes.filter(d => d.aberto);
   // Dia coberto = tem gente e não ficou abaixo do mínimo (geral ou da função).
@@ -2915,7 +2810,7 @@ VIEWS.painel = () => {
     return `<tr><td><div class="nome">${esc(nomeCurto(c))}</div><div class="meta">${esc(fn ? fn.nome : (c.funcao || "Sem função"))} · ${c.carga}h/sem</div></td>${vis.map(d => {
       const cel = G[c.id][d.iso];
       if (cel?.st === "FORA") return `<td class="${d.dentro ? "" : "fora-mes"}" title="${esc(`${nomeCurto(c)} · ${br(d.iso)}: fora do período de contrato`)}"></td>`;
-      return `<td class="${d.dentro ? "" : "fora-mes"}"><button class="cell ${ST[cel.st]?.cls || ""} ${cel.manual ? "manual" : ""} ${cel.troca ? "troca" : ""} ${cel.travado ? "travado" : ""}" title="${esc(`${nomeCurto(c)} · ${br(d.iso)}: ${textoCel(cel)} (${fmtH(cel.horas || 0)})`)}" onclick="abrirModal('${c.id}','${d.iso}')">${rotuloCelHTML(cel)}</button></td>`;
+      return `<td class="${d.dentro ? "" : "fora-mes"}"><button class="cell ${ST[cel.st]?.cls || ""} ${cel.manual ? "manual" : ""} ${cel.troca ? "troca" : ""} ${cel.travado ? "travado" : ""}" title="${esc(`${nomeCurto(c)} · ${br(d.iso)}: ${textoCel(cel)} (${fmtH(cel.horas || 0)})`)}" onclick="abrirModal('${jsa(c.id)}','${jsa(d.iso)}')">${rotuloCelHTML(cel)}</button></td>`;
     }).join("")}<td class="tot num">${fmtH(hrs)}</td></tr>`;
   }).join("");
   const foot = `<tr><td><div class="nome">Na loja</div><div class="meta">pessoas trabalhando</div></td>${vis.map(d => {
@@ -2966,7 +2861,7 @@ VIEWS.funcoes = () => {
       <td data-l="Mín. domingo" class="num">${numFn(idx, "minDomingo", fn.minDomingo, "= útil")}</td>
       <td data-l="Mín. feriado" class="num">${numFn(idx, "minFeriado", fn.minFeriado)}</td>
       <td data-l="Máx. horas/dia" class="num">${numFn(idx, "maxHorasDia", fn.maxHorasDia, "padrão", 80)}</td>
-      <td data-l="Ativos" class="num">${qtdCols}</td><td><button class="btn-danger btn-sm" onclick="excluirFuncao('${fn.id}')">Excluir</button></td></tr>`;
+      <td data-l="Ativos" class="num">${qtdCols}</td><td><button class="btn-danger btn-sm" onclick="excluirFuncao('${jsa(fn.id)}')">Excluir</button></td></tr>`;
   }).join("") || `<tr><td colspan="9" class="empty">Nenhuma função cadastrada.</td></tr>`;
 
   return `${datalistsFuncao()}
@@ -3017,7 +2912,7 @@ VIEWS.feriados = () => {
       const quem = Object.keys(r.G).filter(cid => ST[r.G[cid][f.data]?.st]?.trab).map(nomeCol);
       imp = (quem.length ? `Trabalha: ${quem.join(", ")}` : "Ninguém disponível") + (f.tratamento === "COMP" ? " → ganha folga compensatória" : " → recebe o dia em dobro");
     }
-    return `<tr><td data-l="Data"><b>${br(f.data)}</b></td><td data-l="Dia">${DOW[parseISO(f.data).getDay()]}</td><td data-l="Feriado">${esc(f.descricao)}</td><td data-l="Abrangência">${esc(f.abrangencia)}</td><td data-l="Tratamento"><select style="min-width:265px" onchange="upd(e=>e.feriados.find(x=>x.id==='${f.id}').tratamento=this.value,true)">${Object.entries(TRAT_FER).map(([k, v]) => opt(k, v, f.tratamento)).join("")}</select></td><td data-l="Impacto na escala"><span class="help" style="color:var(--ink-2)">${esc(imp)}</span></td><td><button class="btn-danger btn-sm" onclick="upd(e=>e.feriados=e.feriados.filter(x=>x.id!=='${f.id}'),true)">Excluir</button></td></tr>`;
+    return `<tr><td data-l="Data"><b>${br(f.data)}</b></td><td data-l="Dia">${DOW[parseISO(f.data).getDay()]}</td><td data-l="Feriado">${esc(f.descricao)}</td><td data-l="Abrangência">${esc(f.abrangencia)}</td><td data-l="Tratamento"><select style="min-width:265px" onchange="upd(e=>e.feriados.find(x=>x.id==='${jsa(f.id)}').tratamento=this.value,true)">${Object.entries(TRAT_FER).map(([k, v]) => opt(k, v, f.tratamento)).join("")}</select></td><td data-l="Impacto na escala"><span class="help" style="color:var(--ink-2)">${esc(imp)}</span></td><td><button class="btn-danger btn-sm" onclick="upd(e=>e.feriados=e.feriados.filter(x=>x.id!=='${jsa(f.id)}'),true)">Excluir</button></td></tr>`;
   }).join("") || `<tr><td colspan="7" class="empty">Nenhum feriado cadastrado.</td></tr>`;
   return `<div class="card"><div class="card-h"><div><h2>Cadastrar feriado</h2><div class="sub">Pra cada feriado: a loja fecha (todo mundo folga) ou abre com revezamento.${ex("<b>Revezamento + folga compensatória:</b> quem trabalhar ganha uma folga pra tirar depois (aparece em Compensações). <b>Revezamento + pagamento em dobro:</b> quem trabalhar recebe o dia em dobro. <b>Replicar para o próximo ano</b> copia os feriados, já acertando os de data móvel (Carnaval, Paixão, Corpus Christi).", "Como funciona")}</div></div><div class="acts"><button class="btn-ghost" onclick="addNacionais(${ano})" title="Inclui os nacionais que faltam e corrige a data dos móveis (Paixão de Cristo, Corpus Christi)">Atualizar nacionais de ${ano}</button><button class="btn-ghost" onclick="replicarFeriados(${anoRep})" title="Copia os feriados de ${anoRep} para ${anoRep + 1}, com o mesmo tratamento">Replicar ${anoRep} → ${anoRep + 1}</button></div></div>
     <div class="grid g4">
@@ -3076,7 +2971,7 @@ VIEWS.trocas = () => {
     const ca = colById(t.colA)?.carga, cb = colById(t.colB)?.carga;
     if (ca && cb && ca !== cb) conf.push(`Jornadas diferentes (${ca}h × ${cb}h)`);
     const imp = a && b ? `${nomeCol(t.colA)}: ${textoCel(a)} · ${nomeCol(t.colB)}: ${textoCel(b)}` : "—";
-    return `<tr><td data-l="Data"><b>${br(t.data)}</b></td><td data-l="Colaboradores">${esc(nomeCol(t.colA))} ⇄ ${esc(nomeCol(t.colB))}</td><td data-l="Motivo">${esc(t.motivo || "—")}</td><td data-l="Impacto na escala"><span class="help" style="color:var(--ink-2)">${esc(imp)}</span></td><td data-l="Situação">${conf.length ? `<span class="badge b-amber">${esc(conf.join(" · "))}</span>` : `<span class="badge b-green">OK</span>`}</td><td><button class="btn-danger btn-sm" onclick="upd(e=>e.trocas=e.trocas.filter(x=>x.id!=='${t.id}'),true)">Excluir</button></td></tr>`;
+    return `<tr><td data-l="Data"><b>${br(t.data)}</b></td><td data-l="Colaboradores">${esc(nomeCol(t.colA))} ⇄ ${esc(nomeCol(t.colB))}</td><td data-l="Motivo">${esc(t.motivo || "—")}</td><td data-l="Impacto na escala"><span class="help" style="color:var(--ink-2)">${esc(imp)}</span></td><td data-l="Situação">${conf.length ? `<span class="badge b-amber">${esc(conf.join(" · "))}</span>` : `<span class="badge b-green">OK</span>`}</td><td><button class="btn-danger btn-sm" onclick="upd(e=>e.trocas=e.trocas.filter(x=>x.id!=='${jsa(t.id)}'),true)">Excluir</button></td></tr>`;
   }).join("") || `<tr><td colspan="6" class="empty">Nenhuma troca registrada.</td></tr>`;
   return `<div class="card"><div class="card-h"><div><h2>Registrar troca</h2></div></div><div class="grid g4"><div class="field"><label for="tData">Data</label><input type="date" id="tData"></div><div class="field"><label for="tA">Colaborador 1</label><select id="tA">${optsEquipe()}</select></div><div class="field"><label for="tB">Colaborador 2</label><select id="tB">${optsEquipe(E.equipe.filter(c => c.status === "Ativo")[1]?.id)}</select></div><div class="field"><label for="tMot">Motivo</label><input id="tMot"></div></div><div class="form-actions"><button class="btn-primary" onclick="addTroca()">+ Registrar troca</button></div></div><div class="card"><div class="card-h"><h2>Trocas registradas</h2><span class="badge b-blue">${E.trocas.length}</span></div><div class="tbl-wrap"><table class="stack"><thead><tr><th>Data</th><th>Colaboradores</th><th>Motivo</th><th>Impacto na escala</th><th>Situação</th><th></th></tr></thead><tbody>${linhas}</tbody></table></div></div>`;
 };
@@ -3101,7 +2996,7 @@ VIEWS.ocorrencias = () => {
     const imp = o.tipo === "FALTA" ? "Dia descontado; verificar perda do repouso da semana na folha"
       : falta ? `${n} dia(s) fora · <b style="color:var(--amber-tx)">em ${falta} dia(s) a loja fica abaixo do mínimo</b> (veja os avisos no Painel)` : `${n} dia(s) fora · a loja continua com o mínimo todos os dias`;
     const b = o.tipo === "FERIAS" ? "b-blue" : o.tipo === "AFAST" ? "b-red" : "b-amber";
-    return `<tr><td data-l="Colaborador"><b>${esc(nomeCol(o.colId))}</b></td><td data-l="Tipo"><span class="badge ${b}">${TIPOS_OC[o.tipo]}</span></td><td data-l="Período">${br(o.inicio)}${o.fim !== o.inicio ? " a " + br(o.fim) : ""}</td><td data-l="Dias" class="num">${n}</td><td data-l="Motivo">${esc(o.motivo || "—")}</td><td data-l="Impacto"><span class="help" style="color:var(--ink-2)">${imp}</span></td><td><button class="btn-danger btn-sm" onclick="upd(e=>e.ocorrencias=e.ocorrencias.filter(x=>x.id!=='${o.id}'),true)">Excluir</button></td></tr>`;
+    return `<tr><td data-l="Colaborador"><b>${esc(nomeCol(o.colId))}</b></td><td data-l="Tipo"><span class="badge ${b}">${TIPOS_OC[o.tipo]}</span></td><td data-l="Período">${br(o.inicio)}${o.fim !== o.inicio ? " a " + br(o.fim) : ""}</td><td data-l="Dias" class="num">${n}</td><td data-l="Motivo">${esc(o.motivo || "—")}</td><td data-l="Impacto"><span class="help" style="color:var(--ink-2)">${imp}</span></td><td><button class="btn-danger btn-sm" onclick="upd(e=>e.ocorrencias=e.ocorrencias.filter(x=>x.id!=='${jsa(o.id)}'),true)">Excluir</button></td></tr>`;
   }).join("") || `<tr><td colspan="7" class="empty">Nenhuma ocorrência lançada.</td></tr>`;
   return `<div class="card"><div class="card-h"><div><h2>Lançar férias ou ausência</h2></div></div><div class="grid g4"><div class="field"><label for="oCol">Colaborador</label><select id="oCol">${optsEquipe(null, false)}</select></div><div class="field"><label for="oTipo">Tipo</label><select id="oTipo">${Object.entries(TIPOS_OC).map(([k, v]) => opt(k, v)).join("")}</select></div><div class="field"><label for="oIni">Início</label><input type="date" id="oIni"></div><div class="field"><label for="oFim">Fim</label><input type="date" id="oFim"></div><div class="field span-2"><label for="oMot">Motivo / observação</label><input id="oMot"></div></div><div class="form-actions"><button class="btn-primary" onclick="addOcorrencia()">+ Lançar</button></div></div><div class="card"><div class="card-h"><h2>Ocorrências lançadas</h2><span class="badge b-blue">${E.ocorrencias.length}</span></div><div class="tbl-wrap"><table class="stack"><thead><tr><th>Colaborador</th><th>Tipo</th><th>Período</th><th class="num">Dias</th><th>Motivo</th><th>Impacto na escala</th><th></th></tr></thead><tbody>${linhas}</tbody></table></div></div>`;
 };
@@ -3117,7 +3012,7 @@ VIEWS.compensacoes = () => {
   if (!E.equipe.length) return vazioEquipe();
   const L = razao();
   const cards = E.equipe.map(c => { const s = saldoCol(c.id); return `<div class="saldo ${s.saldo > 0 ? "pos" : s.saldo < 0 ? "neg" : "zero"}"><div class="nome">${esc(nomeCurto(c))}</div><div class="n">${s.saldo}</div><div class="help">${s.ganho} ganha(s) · ${s.usado} usada(s)</div></div>`; }).join("");
-  const linhas = [...L].reverse().map(l => `<tr><td data-l="Data">${br(l.data)}</td><td data-l="Colaborador"><b>${esc(nomeCol(l.colId))}</b></td><td data-l="Movimento"><span class="badge ${l.qtd > 0 ? "b-teal" : "b-amber"}">${l.qtd > 0 ? "+1 crédito" : "−1 usado"}</span></td><td data-l="Descrição">${esc(l.desc)}</td><td data-l="Origem"><span class="help">${l.origem}</span></td><td>${l.id ? `<button class="btn-danger btn-sm" onclick="upd(e=>e.compensacoes=e.compensacoes.filter(x=>x.id!=='${l.id}'),true)">Excluir</button>` : ""}</td></tr>`).join("") || `<tr><td colspan="6" class="empty">Nenhum movimento.</td></tr>`;
+  const linhas = [...L].reverse().map(l => `<tr><td data-l="Data">${br(l.data)}</td><td data-l="Colaborador"><b>${esc(nomeCol(l.colId))}</b></td><td data-l="Movimento"><span class="badge ${l.qtd > 0 ? "b-teal" : "b-amber"}">${l.qtd > 0 ? "+1 crédito" : "−1 usado"}</span></td><td data-l="Descrição">${esc(l.desc)}</td><td data-l="Origem"><span class="help">${l.origem}</span></td><td>${l.id ? `<button class="btn-danger btn-sm" onclick="upd(e=>e.compensacoes=e.compensacoes.filter(x=>x.id!=='${jsa(l.id)}'),true)">Excluir</button>` : ""}</td></tr>`).join("") || `<tr><td colspan="6" class="empty">Nenhum movimento.</td></tr>`;
   return `${cardSugestoesFolga()}<div class="card"><div class="card-h"><div><h2>Saldo de folgas por colaborador</h2></div></div><div class="saldo-cards">${cards}</div></div>${cardFeriadosPagos()}<div class="card"><div class="card-h"><div><h2>Lançar compensação</h2></div></div><div class="grid g4"><div class="field"><label for="cCol">Colaborador</label><select id="cCol">${optsEquipe()}</select></div><div class="field"><label for="cTipo">Como compensar</label><select id="cTipo" onchange="$('cDataLbl').textContent=this.value==='FOLGA'?'Dia da folga':'Data do lançamento'">${opt("FOLGA", "Dar folga compensatória")}${opt("PAGAMENTO", "Pagar em folha")}${opt("CREDITO", "Lançar crédito manual")}</select></div><div class="field"><label for="cData" id="cDataLbl">Dia da folga</label><input type="date" id="cData"></div><div class="field"><label for="cMot">Motivo / referência</label><input id="cMot"></div></div><div class="form-actions"><button class="btn-primary" onclick="addComp()">+ Lançar</button></div></div><div class="card"><div class="card-h"><h2>Extrato de compensações</h2><span class="badge b-blue">${L.length} movimento(s)</span></div><div class="tbl-wrap"><table class="stack"><thead><tr><th>Data</th><th>Colaborador</th><th>Movimento</th><th>Descrição</th><th>Origem</th><th></th></tr></thead><tbody>${linhas}</tbody></table></div></div>`;
 };
 /* ---------------- v25: folga de feriado sugerida ----------------
@@ -3343,7 +3238,7 @@ VIEWS.empresa = () => {
   const cnpjOk = !e.cnpj || cnpjValido(e.cnpj);
   return `<div class="card"><div class="card-h"><div><h2>Identificação</h2></div></div><div class="grid g3">${f("razao", "Razão social", "Como está no CNPJ", "", "span-2")}${f("fantasia", "Nome fantasia", "Nome da loja")}<div class="field"><label for="e_cnpj">CNPJ</label><input id="e_cnpj" value="${esc(e.cnpj)}" placeholder="00.000.000/0000-00" inputmode="numeric" class="${cnpjOk ? "" : "invalid"}" oninput="this.value=mascCNPJ(this.value)" onchange="validarCNPJ(this)"><span class="help" id="cnpjMsg">${cnpjOk ? "Dígitos verificadores conferidos." : "CNPJ inválido."}</span></div><div class="field"><label for="e_ramo">Ramo de atividade</label><select id="e_ramo" onchange="upd(x=>x.empresa.ramo=this.value)">${opt("", "Selecione…", e.ramo)}${RAMOS.map(r => opt(r, r, e.ramo)).join("")}</select></div><div class="field"><label for="e_telefone">Telefone</label><input id="e_telefone" value="${esc(e.telefone)}" inputmode="tel" oninput="this.value=mascTel(this.value)" onchange="upd(x=>x.empresa.telefone=this.value)"></div></div></div>
   <div class="card"><div class="card-h"><h2>Endereço</h2></div><div class="grid g4"><div class="field"><label for="e_cep">CEP</label><input id="e_cep" value="${esc(e.cep)}" inputmode="numeric" oninput="this.value=mascCEP(this.value)" onchange="upd(x=>x.empresa.cep=this.value)"></div>${f("logradouro", "Logradouro", "", "", "span-2")}${f("numero", "Número")}${f("complemento", "Complemento")}${f("bairro", "Bairro")}${f("cidade", "Cidade")}<div class="field"><label for="e_uf">UF</label><select id="e_uf" onchange="upd(x=>x.empresa.uf=this.value)">${opt("", "—", e.uf)}${"AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO".split(" ").map(u => opt(u, u, e.uf)).join("")}</select></div></div></div>
-  <div class="card"><div class="card-h"><h2>Marca</h2></div><div class="grid g2"><div class="logo-up"><div class="logo">${logoHTML()}</div><div style="display:grid;gap:8px"><div class="lbl-f">Foto de perfil / logotipo</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-ghost" onclick="$('fileLogo').click()">Enviar imagem</button>${e.logo ? `<button class="btn-danger" onclick="upd(x=>x.empresa.logo='',true)">Remover</button>` : ""}</div></div></div><div class="field"><div class="lbl-f">Cor principal</div><div class="swatches">${CORES.map(c => `<button class="${c.toLowerCase() === (e.cor || "").toLowerCase() ? "sel" : ""}" style="background:${c}" onclick="upd(x=>x.empresa.cor='${c}',true)"></button>`).join("")}<input type="color" value="${esc(e.cor)}" onchange="upd(x=>x.empresa.cor=this.value,true)"></div></div></div></div>
+  <div class="card"><div class="card-h"><h2>Marca</h2></div><div class="grid g2"><div class="logo-up"><div class="logo">${logoHTML()}</div><div style="display:grid;gap:8px"><div class="lbl-f">Foto de perfil / logotipo</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-ghost" onclick="$('fileLogo').click()">Enviar imagem</button>${e.logo ? `<button class="btn-danger" onclick="upd(x=>x.empresa.logo='',true)">Remover</button>` : ""}</div></div></div><div class="field"><div class="lbl-f">Cor principal</div><div class="swatches">${CORES.map(c => `<button class="${c.toLowerCase() === (e.cor || "").toLowerCase() ? "sel" : ""}" style="background:${c}" onclick="upd(x=>x.empresa.cor='${jsa(c)}',true)"></button>`).join("")}<input type="color" value="${esc(e.cor)}" onchange="upd(x=>x.empresa.cor=this.value,true)"></div></div></div></div>
   <div class="card"><div class="card-h"><h2>Dados e backup</h2></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-ghost" onclick="exportarJSON()">Exportar backup desta empresa</button>${isMaster() ? `<button class="btn-ghost" onclick="$('fileImport').click()">Importar backup (como nova empresa)</button><button class="btn-ghost" onclick="criarEmpresa()">+ Nova empresa</button><button class="btn-danger" onclick="excluirEmpresa()">Excluir esta empresa</button>` : ""}</div></div>`;
 };
 const mascCNPJ = v => v.replace(/\D/g, "").slice(0, 14).replace(/^(\d{2})(\d)/, "$1.$2").replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d)/, ".$1/$2").replace(/(\d{4})(\d)/, "$1-$2");
@@ -3443,7 +3338,7 @@ VIEWS.funcionamento = (parte) => {
   const _horarios = `<div class="card"><div class="card-h"><div><h2>Horário de funcionamento, almoço, mínimos e controle de folgas</h2><div class="sub">Preencha <b>Saída</b> e <b>Retorno do almoço</b> só se a loja fecha no almoço. Se não fecha, deixe em branco que o app reveza o almoço da equipe.<span class="req-nota"><b>*</b> Essencial pra escala sair certa. Dá pra salvar sem, o app só avisa.</span></div>${ex(`<ul><li><b>Mín. dia:</b> quantas pessoas, no mínimo, precisam estar na loja nesse dia.</li><li><b>Mín. feriado:</b> o mínimo quando cair feriado nesse dia da semana.</li><li><b>Folgas Liberada/Bloqueada:</b> se alguém pode folgar nesse dia. Ex.: segunda bloqueada porque é dia de mais movimento.</li><li><b>Máx. folgas:</b> quantos podem folgar no mesmo dia. Vazio = o app calcula.</li><li><b>Almoço:</b> quanto tempo cada um tira. Ex.: loja aberta das 07:00 às 20:00, sem fechar no almoço, almoço de 1h: o app põe cada um pra almoçar num horário diferente.</li></ul>`, "O que é cada coluna")}</div><div class="acts"><button type="button" class="btn-ghost" onclick="limparAlmocoFixo()" title="Limpa saída e retorno de almoço de segunda a sábado">Limpar almoço fixo (Seg–Sáb)</button><button type="button" class="btn-ghost" onclick="copiarSegunda()">Copiar segunda para terça a sábado</button></div></div><div class="tbl-wrap"><table class="stack"><thead><tr><th>Dia</th><th>Situação</th><th class="req">Abertura</th><th>Saída almoço <small style="font-weight:400">(opc.)</small></th><th>Retorno almoço <small style="font-weight:400">(opc.)</small></th><th class="req">Fechamento</th><th>Almoço</th><th class="req">Mín. dia</th><th>Mín. feriado</th><th>Folgas</th><th>Máx. folgas</th><th class="num">Loja aberta</th></tr></thead><tbody>${linhas}</tbody></table></div></div>`;
   const REGRAS_ABAS = [["jornada", "Jornada e limites"], ["folgas", "Folgas"], ["domfer", "Domingos e feriados"], ["horarios", "Horários e restrições"]];
   const subAba = REGRAS_ABAS.some(([id]) => id === ui.regrasAba) ? ui.regrasAba : "jornada";
-  const subTabs = `<div class="cfg-subtabs" role="tablist">${REGRAS_ABAS.map(([id, nome]) => `<button type="button" role="tab" aria-selected="${id === subAba}" class="cfg-subtab ${id === subAba ? "on" : ""}" onclick="ui.regrasAba='${id}';render()">${nome}</button>`).join("")}</div>`;
+  const subTabs = `<div class="cfg-subtabs" role="tablist">${REGRAS_ABAS.map(([id, nome]) => `<button type="button" role="tab" aria-selected="${id === subAba}" class="cfg-subtab ${id === subAba ? "on" : ""}" onclick="ui.regrasAba='${jsa(id)}';render()">${nome}</button>`).join("")}</div>`;
   const REGRAS_GRUPOS = {
     jornada: () => `
       <div class="field"><label for="r_iniSem">Primeiro dia da semana</label><select id="r_iniSem" onchange="upd(e=>e.regras.inicioSemanaDow=Number(this.value),true)">${opt(0, "Domingo (padrão)", R.inicioSemanaDow ?? 0)}${opt(1, "Segunda-feira", R.inicioSemanaDow ?? 0)}</select><span class="help">Onde começa cada semana na tela e na contagem das folgas.</span></div>
@@ -3506,7 +3401,7 @@ VIEWS.funcionamento = (parte) => {
       <td><button type="button" class="btn-ghost btn-sm" onclick="upd(e=>e.turnos.lista.splice(${i},1),true)">Remover</button></td></tr>
       <tr><td colspan="8" style="padding:0 10px 10px"><div style="display:flex;gap:6px 22px;flex-wrap:wrap;align-items:center;font-size:11px">
         <span class="help">Dias (vazio = todos do tipo):</span>${[1, 2, 3, 4, 5, 6, 0].map(dw => `<label class="check" style="font-size:11px;white-space:nowrap;display:inline-flex;gap:4px;align-items:center"><input type="checkbox" ${(t.dias || []).includes(dw) ? "checked" : ""} onchange="toggleTurnoLista(${i},'dias',${dw},this.checked)"> ${DOW[dw]}</label>`).join("")}
-        ${E.funcoes.length ? `<span class="help" style="margin-left:10px">Funções (vazio = todas):</span>${E.funcoes.map(f => `<label class="check" style="font-size:11px;white-space:nowrap;display:inline-flex;gap:4px;align-items:center"><input type="checkbox" ${(t.funcoes || []).includes(f.id) ? "checked" : ""} onchange="toggleTurnoLista(${i},'funcoes','${f.id}',this.checked)"> ${esc(f.nome)}</label>`).join("")}` : ""}
+        ${E.funcoes.length ? `<span class="help" style="margin-left:10px">Funções (vazio = todas):</span>${E.funcoes.map(f => `<label class="check" style="font-size:11px;white-space:nowrap;display:inline-flex;gap:4px;align-items:center"><input type="checkbox" ${(t.funcoes || []).includes(f.id) ? "checked" : ""} onchange="toggleTurnoLista(${i},'funcoes','${jsa(f.id)}',this.checked)"> ${esc(f.nome)}</label>`).join("")}` : ""}
       </div></td></tr>`;
     }).join("") || `<tr><td colspan="8" class="help">Nenhum turno cadastrado.</td></tr>`}
     </tbody></table></div>
@@ -3564,14 +3459,14 @@ function irCfg(aba) { view = abrirAba(aba); S.ui.view = view; salvar(); render()
 VIEWS.config = () => {
   const aba = CFG_ABAS.some(([id]) => id === ui.cfgAba) ? ui.cfgAba : "horarios";
   const diag = diagnosticoConfig();
-  const tabs = `<div class="cfg-tabs" role="tablist">${CFG_ABAS.map(([id, nome]) => `<button type="button" role="tab" aria-selected="${id === aba}" class="cfg-tab ${id === aba ? "on" : ""}" onclick="irCfg('${id}')">${nome}</button>`).join("")}</div>`;
+  const tabs = `<div class="cfg-tabs" role="tablist">${CFG_ABAS.map(([id, nome]) => `<button type="button" role="tab" aria-selected="${id === aba}" class="cfg-tab ${id === aba ? "on" : ""}" onclick="irCfg('${jsa(id)}')">${nome}</button>`).join("")}</div>`;
   const avisos = diag.length ? `<div class="card cfg-avisos"><div class="card-h"><h2>Conferência da configuração</h2><span class="badge ${diag.some(x => x.t === "err") ? "b-red" : "b-amber"}">${diag.length}</span></div><ul>${diag.map(x => `<li class="${x.t}">${esc(x.x)}</li>`).join("")}</ul></div>` : "";
   const corpo = aba === "regras" ? VIEWS.funcionamento("regras") : aba === "turnos" ? VIEWS.funcionamento("turnos") : VIEWS.funcionamento("horarios");
   return tabs + avisos + corpo;
 };
 VIEWS.cadastros = () => {
   const aba = CAD_ABAS.some(([id]) => id === ui.cadAba) ? ui.cadAba : "equipe";
-  const tabs = `<div class="cfg-tabs" role="tablist">${CAD_ABAS.map(([id, nome]) => `<button type="button" role="tab" aria-selected="${id === aba}" class="cfg-tab ${id === aba ? "on" : ""}" onclick="irCfg('${id}')">${nome}</button>`).join("")}</div>`;
+  const tabs = `<div class="cfg-tabs" role="tablist">${CAD_ABAS.map(([id, nome]) => `<button type="button" role="tab" aria-selected="${id === aba}" class="cfg-tab ${id === aba ? "on" : ""}" onclick="irCfg('${jsa(id)}')">${nome}</button>`).join("")}</div>`;
   const corpo = aba === "acessos" ? VIEWS.acessos() : aba === "empresa" ? VIEWS.empresa() : aba === "funcoes" ? VIEWS.funcoes() : aba === "feriados" ? VIEWS.feriados() : VIEWS.equipe();
   return tabs + corpo;
 };
@@ -3631,9 +3526,9 @@ function cardFechamento() {
   const [a, m] = comp.split("-").map(Number), nome = `${MESES[m - 1]} de ${a}`;
   const fechados = Object.keys(E.fechamentos || {}).sort();
   const lista = fechados.length ? `<div class="help" style="margin-top:4px">Meses fechados: ${fechados.map(k => `${MESES[Number(k.slice(5)) - 1].slice(0, 3)}/${k.slice(0, 4)}`).join(", ")}.</div>` : "";
-  if (f) return `<div class="card no-print" style="border-left:4px solid var(--green)"><div class="card-h" style="border:0;margin:0;padding:0"><div><h2>🔒 ${nome[0].toUpperCase() + nome.slice(1)} está fechado</h2><div class="sub">Fechado em ${br(f.em.slice(0, 10))}. A escala deste mês não muda mais, mesmo se você mudar regras, ordem do rodízio ou equipe. Para alterar um dia, reabra o mês.</div>${lista}</div><button class="btn-ghost" onclick="reabrirMes('${comp}')">Reabrir mês</button></div></div>`;
+  if (f) return `<div class="card no-print" style="border-left:4px solid var(--green)"><div class="card-h" style="border:0;margin:0;padding:0"><div><h2>🔒 ${nome[0].toUpperCase() + nome.slice(1)} está fechado</h2><div class="sub">Fechado em ${br(f.em.slice(0, 10))}. A escala deste mês não muda mais, mesmo se você mudar regras, ordem do rodízio ou equipe. Para alterar um dia, reabra o mês.</div>${lista}</div><button class="btn-ghost" onclick="reabrirMes('${jsa(comp)}')">Reabrir mês</button></div></div>`;
   const passou = comp < mesAtual();
-  return `<div class="card no-print"><div class="card-h" style="border:0;margin:0;padding:0"><div><h2>Mês aberto</h2><div class="sub">${passou ? "Este mês já passou. Feche para guardar a escala como histórico: assim, mudanças futuras (ordem do rodízio, equipe, regras) não mexem nele." : "Quando o mês terminar e a escala estiver conferida, feche para guardar como histórico."}</div>${lista}</div><button class="${passou ? "btn-primary" : "btn-ghost"}" onclick="fecharMes('${comp}')">🔒 Fechar ${nome}</button></div></div>`;
+  return `<div class="card no-print"><div class="card-h" style="border:0;margin:0;padding:0"><div><h2>Mês aberto</h2><div class="sub">${passou ? "Este mês já passou. Feche para guardar a escala como histórico: assim, mudanças futuras (ordem do rodízio, equipe, regras) não mexem nele." : "Quando o mês terminar e a escala estiver conferida, feche para guardar como histórico."}</div>${lista}</div><button class="${passou ? "btn-primary" : "btn-ghost"}" onclick="fecharMes('${jsa(comp)}')">🔒 Fechar ${nome}</button></div></div>`;
 }
 function abrirModal(cid, iso) {
   const c = colById(cid), cel = calc.G[cid][iso];
@@ -3725,7 +3620,7 @@ function htmlTrocaModal(cid, iso) {
   if (feitas.length) {
     const t = feitas[0], outro = t.colA === cid ? t.colB : t.colA;
     const par = t.par ? E.trocas.filter(x => x.par === t.par && x.id !== t.id) : [];
-    return `<div class="troca-box"><b>⇄ Troca com ${esc(nomeCol(outro))}</b><div class="help">${par.length ? `Os dois trocaram este dia e o dia ${par.map(x => brC(x.data)).join(", ")}, pra cada um continuar com as mesmas folgas.` : "Os dois trocaram o que fariam neste dia."}</div><div style="margin-top:8px"><button class="btn-ghost btn-sm" onclick="desfazerTroca('${t.id}')">Desfazer troca</button></div></div>`;
+    return `<div class="troca-box"><b>⇄ Troca com ${esc(nomeCol(outro))}</b><div class="help">${par.length ? `Os dois trocaram este dia e o dia ${par.map(x => brC(x.data)).join(", ")}, pra cada um continuar com as mesmas folgas.` : "Os dois trocaram o que fariam neste dia."}</div><div style="margin-top:8px"><button class="btn-ghost btn-sm" onclick="desfazerTroca('${jsa(t.id)}')">Desfazer troca</button></div></div>`;
   }
   if (!cel || (!trabSt(cel.st) && cel.st !== "FOLGA")) return `<div class="help" style="margin-bottom:10px">Troca com outra pessoa só em dia de trabalho ou de folga semanal.</div>`;
   const { ok, nao } = opcoesTroca(cid, iso);
@@ -3733,7 +3628,7 @@ function htmlTrocaModal(cid, iso) {
     const cb = calc.G[o.b.id][iso];
     const desc = o.tipo === "hora" ? `${esc(nomeCurto(c))} fica com ${esc(cb.horario || fmtH(cb.horas || 0))} e ${esc(nomeCurto(o.b))} com ${esc(cel.horario || fmtH(cel.horas || 0))}`
       : `Trocam a folga: ${trabSt(cel.st) ? `${esc(nomeCurto(c))} folga dia ${brC(iso)} e trabalha dia ${brC(o.iso2)}` : `${esc(nomeCurto(c))} trabalha dia ${brC(iso)} e folga dia ${brC(o.iso2)}`}`;
-    return `<div class="troca-op"><div><b>${esc(nomeCurto(o.b))}</b> <span class="help">${esc(o.b.funcao || "")}</span><div class="help">${desc}</div>${o.avisos.length ? `<div class="troca-av">⚠ ${esc(o.avisos.join(" · "))}</div>` : ""}</div><button class="btn-primary btn-sm" onclick="fazerTroca('${cid}','${iso}','${o.b.id}','${o.iso2 || ""}')">Trocar</button></div>`;
+    return `<div class="troca-op"><div><b>${esc(nomeCurto(o.b))}</b> <span class="help">${esc(o.b.funcao || "")}</span><div class="help">${desc}</div>${o.avisos.length ? `<div class="troca-av">⚠ ${esc(o.avisos.join(" · "))}</div>` : ""}</div><button class="btn-primary btn-sm" onclick="fazerTroca('${jsa(cid)}','${jsa(iso)}','${jsa(o.b.id)}','${jsa(o.iso2 || "")}')">Trocar</button></div>`;
   }).join("");
   const naoTxt = nao.length ? `<details class="help" style="margin-top:6px"><summary>Quem não dá (${nao.length})</summary>${nao.map(n => `<div>${esc(nomeCurto(n.b))}: ${esc(n.motivo)}</div>`).join("")}</details>` : "";
   return `<details class="troca-box" id="mTrocaDet"><summary><b>⇄ Trocar com outra pessoa</b> <span class="help">(${ok.length} ${ok.length === 1 ? "opção" : "opções"})</span></summary>${itens || `<div class="help" style="margin-top:6px">Ninguém dá pra trocar nesse dia sem quebrar descanso, dias seguidos, domingo ou restrição.</div>`}${naoTxt}</details>`;
@@ -3795,11 +3690,11 @@ function htmlMoverFolga(cid, iso) {
   const cel = calc.G[cid]?.[iso];
   if (cel?.mov) {
     const outro = Object.entries(E.ajustes[cid] || {}).find(([k, v]) => v.mov === cel.mov && k !== iso);
-    return `<div class="troca-box"><b>↔ Folga mudada de dia</b><div class="help">${outro ? `Mudou junto com o dia ${brC(outro[0])}.` : ""} Desfazendo, os dois dias voltam pro automático.</div><div style="margin-top:8px"><button class="btn-ghost btn-sm" onclick="desfazerMov('${cid}','${cel.mov}')">Desfazer</button></div></div>`;
+    return `<div class="troca-box"><b>↔ Folga mudada de dia</b><div class="help">${outro ? `Mudou junto com o dia ${brC(outro[0])}.` : ""} Desfazendo, os dois dias voltam pro automático.</div><div style="margin-top:8px"><button class="btn-ghost btn-sm" onclick="desfazerMov('${jsa(cid)}','${jsa(cel.mov)}')">Desfazer</button></div></div>`;
   }
   if (cel?.st !== "FOLGA" || cel.troca) return "";
   const ops = opcoesMoverFolga(cid, iso);
-  const itens = ops.map(o => `<div class="troca-op"><div><b>${DOW[o.dx.dow]} ${brC(o.x)}</b><div class="help">Folga nesse dia e trabalha ${brC(iso)} (${esc(o.novo.horario || fmtH(o.novo.horas || 0))})</div>${o.avisos.length ? `<div class="troca-av">⚠ ${esc(o.avisos.join(" · "))}</div>` : ""}</div><button class="btn-primary btn-sm" onclick="moverFolga('${cid}','${iso}','${o.x}')">Folgar aqui</button></div>`).join("");
+  const itens = ops.map(o => `<div class="troca-op"><div><b>${DOW[o.dx.dow]} ${brC(o.x)}</b><div class="help">Folga nesse dia e trabalha ${brC(iso)} (${esc(o.novo.horario || fmtH(o.novo.horas || 0))})</div>${o.avisos.length ? `<div class="troca-av">⚠ ${esc(o.avisos.join(" · "))}</div>` : ""}</div><button class="btn-primary btn-sm" onclick="moverFolga('${jsa(cid)}','${jsa(iso)}','${jsa(o.x)}')">Folgar aqui</button></div>`).join("");
   return `<details class="troca-box"><summary><b>↔ Mudar a folga pra outro dia</b> <span class="help">(mesma semana)</span></summary>${itens || `<div class="help" style="margin-top:6px">Nenhum dia da semana dá sem quebrar descanso, dias seguidos, domingo ou restrição.</div>`}</details>`;
 }
 function fazerTroca(cidA, iso, cidB, iso2) {
@@ -3822,7 +3717,7 @@ function cardTrocasMes() {
   [...lst].sort((x, y) => x.data.localeCompare(y.data)).forEach(t => {
     const k = t.par || t.id; if (vistos.has(k)) return; vistos.add(k);
     const grupo = t.par ? E.trocas.filter(x => x.par === t.par) : [t];
-    linhas.push(`<tr><td data-l="Dias"><b>${grupo.map(x => brC(x.data)).join(" e ")}</b></td><td data-l="Quem">${esc(nomeCol(t.colA))} ⇄ ${esc(nomeCol(t.colB))}</td><td data-l="Tipo">${grupo.length > 1 ? "Troca de folga" : "Troca de horário"}</td><td><button class="btn-ghost btn-sm" onclick="desfazerTroca('${t.id}')">Desfazer</button></td></tr>`);
+    linhas.push(`<tr><td data-l="Dias"><b>${grupo.map(x => brC(x.data)).join(" e ")}</b></td><td data-l="Quem">${esc(nomeCol(t.colA))} ⇄ ${esc(nomeCol(t.colB))}</td><td data-l="Tipo">${grupo.length > 1 ? "Troca de folga" : "Troca de horário"}</td><td><button class="btn-ghost btn-sm" onclick="desfazerTroca('${jsa(t.id)}')">Desfazer</button></td></tr>`);
   });
   return `<div class="card no-print"><div class="card-h"><div><h2>Trocas do mês</h2><div class="sub">Pra trocar, clique na caixinha da pessoa no dia e use "Trocar com outra pessoa".</div></div><span class="badge b-blue">${linhas.length}</span></div><div class="tbl-wrap"><table class="stack"><thead><tr><th>Dias</th><th>Quem</th><th>Tipo</th><th></th></tr></thead><tbody>${linhas.join("")}</tbody></table></div></div>`;
 }
@@ -3928,11 +3823,16 @@ function carregarExemplo() {
   toast("Modelo de exemplo carregado!");
 }
 
+/* ---------------- Início ---------------- */
+// Nos testes automáticos (scripts sem navegador) a interface não é iniciada.
+if (!globalThis.__ESCALA_TESTE__) {
 carregar();
 render();
 salvarJa();
 window.addEventListener("beforeunload", () => { clearTimeout(tSave); if (S) salvarJa(); });
 window.addEventListener("resize", () => { if (!window.matchMedia("(max-width: 900px)").matches) document.body.classList.remove("side-open"); });
 document.addEventListener("keydown", ev => { if (ev.key === "Escape") { fecharModal(); document.body.classList.remove("side-open"); } });
+}
+
 </script>
 </body></html>
