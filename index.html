@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Eskla — Gestão de Escalas</title>
+<style id="pageStyle">@page { size: A4 landscape; margin: 10mm; }</style>
+<style>
+/*
+  VOICE: produto SaaS de gestão — calmo, objetivo, confiável.
+  IDEA: o quadro de escala pendurado no balcão da loja, digitalizado.
+  PICTURE: a grade mensal colorida por status é o elemento central.
+  COLOUR/TYPE: cor da marca do cliente na lateral; status com cores fixas (verde trabalha/aberto, vermelho fechado/falta).
+  LAYOUT: lateral retrátil + topo com mês + conteúdo em blocos.
+*/
+:root {
+  --brand: #0F766E; --on-brand: #fff;
+  --side: color-mix(in srgb, var(--brand) 16%, #0B1220);
+  --side-2: color-mix(in srgb, var(--brand) 26%, #0F172A);
+  --ink: #0F172A; --ink-2: #334155; --muted: #64748B;
+  --line: #E2E8F0; --line-2: #CBD5E1; --bg: #F4F6FA; --card: #fff;
+  --radius: 12px; --shadow: 0 1px 2px rgba(15,23,42,.04), 0 2px 8px rgba(15,23,42,.05);
+
+  --green: #16A34A; --green-bg: #DCFCE7; --green-tx: #166534;
+  --red: #DC2626;   --red-bg: #FEE2E2;   --red-tx: #991B1B;
+  --amber-bg: #FEF3C7; --amber-tx: #92400E;
+  --blue-bg: #DBEAFE;  --blue-tx: #1E40AF;
+  --violet-bg: #EDE9FE; --violet-tx: #5B21B6;
+  --rose-bg: #FFE4E6; --rose-tx: #BE123C;
+  --teal-bg: #CCFBF1; --teal-tx: #0F766E;
+  --gray-bg: #F1F5F9; --gray-tx: #64748B;
+}
+* { box-sizing: border-box; min-width: 0; }
+html, body { margin: 0; }
+body { font: 14px/1.45 Inter, "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif; background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; overflow-x: clip; }
+button, input, select, textarea { font: inherit; }
+
+/* ---------- Estrutura ---------- */
+.app { display: grid; grid-template-columns: 256px minmax(0,1fr); min-height: 100vh; transition: grid-template-columns .2s ease; }
+body.side-mini .app { grid-template-columns: 72px minmax(0,1fr); }
+
+.sidebar { background: var(--side); color: #CBD5E1; position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; z-index: 40; }
+.side-scroll { flex: 1; overflow-y: auto; padding: 14px 12px; display: flex; flex-direction: column; gap: 14px; }
+.brand { display: flex; align-items: center; gap: 10px; padding: 4px 6px 12px; border-bottom: 1px solid rgba(255,255,255,.08); }
+.logo { width: 40px; height: 40px; border-radius: 10px; background: var(--brand); color: var(--on-brand); display: grid; place-items: center; font-weight: 800; font-size: 15px; flex-shrink: 0; overflow: hidden; }
+.logo img { width: 100%; height: 100%; object-fit: cover; }
+.brand-txt { overflow: hidden; }
+.brand-name { color: #fff; font-weight: 700; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand-sub { font-size: 11px; color: #94A3B8; white-space: nowrap; }
+.emp-switch { display: flex; gap: 6px; }
+.emp-switch select { flex: 1; background: var(--side-2); color: #E2E8F0; border: 1px solid rgba(255,255,255,.1); border-radius: 8px; padding: 7px 8px; font-size: 12.5px; }
+.emp-switch button { background: var(--side-2); color: #E2E8F0; border: 1px solid rgba(255,255,255,.1); border-radius: 8px; width: 34px; padding: 0; justify-content: center; font-size: 17px; }
+.nav-group { display: grid; gap: 2px; }
+.nav-label { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #64748B; padding: 4px 10px; white-space: nowrap; }
+.nav-btn { display: flex; align-items: center; gap: 11px; width: 100%; background: transparent; color: #CBD5E1; border: 0; padding: 9px 10px; border-radius: 8px; font-size: 13.5px; font-weight: 500; cursor: pointer; text-align: left; white-space: nowrap; }
+.nav-btn svg { width: 18px; height: 18px; flex-shrink: 0; opacity: .85; }
+.nav-btn:hover { background: var(--side-2); color: #fff; }
+.nav-btn.active { background: color-mix(in srgb, var(--brand) 55%, transparent); color: #fff; }
+.nav-btn .count { margin-left: auto; background: var(--red); color: #fff; border-radius: 999px; font-size: 10.5px; padding: 1px 7px; font-weight: 700; }
+.side-foot { padding: 12px; border-top: 1px solid rgba(255,255,255,.08); display: grid; gap: 8px; }
+.rule-chip { background: var(--side-2); border-radius: 9px; padding: 10px 12px; font-size: 11.5px; color: #94A3B8; line-height: 1.5; }
+.rule-chip strong { color: #E2E8F0; display: block; font-size: 12px; }
+.plan { font-size: 11px; color: #94A3B8; padding: 0 4px; white-space: nowrap; }
+body.side-mini .brand-txt, body.side-mini .nav-label, body.side-mini .nav-btn span, body.side-mini .emp-switch, body.side-mini .side-foot, body.side-mini .nav-btn .count { display: none; }
+body.side-mini .nav-btn { justify-content: center; }
+body.side-mini .brand { justify-content: center; }
+
+.content { display: flex; flex-direction: column; min-width: 0; }
+.topbar { position: sticky; top: 0; z-index: 30; background: rgba(244,246,250,.9); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); padding: 12px 24px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.icon-btn { width: 38px; height: 38px; padding: 0; justify-content: center; background: #fff; border: 1px solid var(--line-2); color: var(--ink-2); }
+.icon-btn svg { width: 18px; height: 18px; }
+.top-title { flex: 1; min-width: 180px; }
+.top-title h1 { margin: 0; font-size: 18px; letter-spacing: -.3px; }
+.top-title p { margin: 1px 0 0; font-size: 12.5px; color: var(--muted); }
+.month-nav { display: flex; align-items: center; gap: 4px; background: #fff; border: 1px solid var(--line-2); border-radius: 10px; padding: 3px; }
+.month-nav button { background: transparent; border: 0; width: 32px; height: 32px; padding: 0; justify-content: center; color: var(--ink-2); font-size: 16px; }
+.month-nav button:hover { background: var(--gray-bg); }
+.month-nav .lbl { font-weight: 700; font-size: 13.5px; min-width: 128px; text-align: center; text-transform: capitalize; }
+.save-state { font-size: 12px; color: var(--muted); white-space: nowrap; }
+main { padding: 22px 24px 60px; display: grid; gap: 18px; max-width: 1640px; width: 100%; }
+.overlay { display: none; }
+
+/* ---------- Componentes ---------- */
+button { display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent; border-radius: 9px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s, border-color .15s, filter .15s; }
+button:active { transform: translateY(1px); }
+.btn-primary { background: var(--brand); color: var(--on-brand); }
+.btn-primary:hover { filter: brightness(.92); }
+.btn-dark { background: var(--ink); color: #fff; }
+.btn-ghost { background: #fff; color: var(--ink-2); border-color: var(--line-2); }
+.btn-ghost:hover { background: var(--gray-bg); }
+.btn-danger { background: #fff; color: var(--red-tx); border-color: #FECACA; }
+.btn-danger:hover { background: #FEF2F2; }
+.btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 7px; }
+.btn-wa { background: #16A34A; color: #fff; }
+.btn-wa:hover { background: #15803D; }
+a.btn-wa { text-decoration: none; display: inline-flex; align-items: center; gap: 6px; border-radius: 7px; padding: 5px 10px; font-size: 12px; font-weight: 600; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); min-width: 0; }
+.card-h { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; padding-bottom: 12px; margin-bottom: 14px; border-bottom: 1px solid var(--line); }
+.card-h h2 { margin: 0; font-size: 15px; letter-spacing: -.2px; }
+.card-h .sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.card-h .acts { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.grid { display: grid; gap: 14px; }
+.g2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); }
+.g3 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); }
+.g4 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); }
+.span-2 { grid-column: span 2; }
+@media (max-width: 700px) { .span-2 { grid-column: auto; } }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+label, .lbl-f { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.help { font-size: 11.5px; color: var(--muted); font-weight: 400; line-height: 1.4; }
+input, select, textarea { padding: 8px 10px; border: 1px solid var(--line-2); border-radius: 8px; background: #fff; color: var(--ink); font-size: 13.5px; width: 100%; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent); }
+input[type=color] { padding: 2px; height: 38px; width: 56px; }
+input[type=checkbox] { width: 17px; height: 17px; accent-color: var(--brand); margin: 0; }
+input.invalid { border-color: var(--red); }
+textarea { resize: vertical; min-height: 150px; line-height: 1.5; font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; background: #F8FAFC; }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; }
+.check input { margin-top: 2px; }
+.form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+th { background: #F8FAFC; color: var(--muted); text-align: left; padding: 9px 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; border-bottom: 1px solid var(--line); }
+td { padding: 8px 10px; border-bottom: 1px solid #F1F5F9; vertical-align: middle; }
+tbody tr:last-child td { border-bottom: 0; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+td input, td select { padding: 6px 8px; }
+.empty { text-align: center; color: var(--muted); padding: 26px 10px !important; }
+
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 650; white-space: nowrap; }
+.b-green { background: var(--green-bg); color: var(--green-tx); }
+.b-red { background: var(--red-bg); color: var(--red-tx); }
+.b-amber { background: var(--amber-bg); color: var(--amber-tx); }
+.b-blue { background: var(--blue-bg); color: var(--blue-tx); }
+.b-gray { background: var(--gray-bg); color: var(--gray-tx); }
+.b-teal { background: var(--teal-bg); color: var(--teal-tx); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; display: inline-block; }
+
+/* Interruptor aberto/fechado */
+.toggle { border: 0; border-radius: 999px; padding: 5px 12px 5px 8px; font-size: 12px; font-weight: 700; gap: 7px; }
+.toggle.on { background: var(--green-bg); color: var(--green-tx); }
+.toggle.off { background: var(--red-bg); color: var(--red-tx); }
+.toggle .knob { width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
+
+/* KPIs */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 14px; }
+.kpi { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); border-top: 3px solid var(--line-2); }
+.kpi-l { font-size: 12px; color: var(--muted); font-weight: 600; }
+.kpi-v { font-size: clamp(22px, 2.4vw, 28px); font-weight: 800; letter-spacing: -.5px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.kpi-h { font-size: 12px; color: var(--muted); }
+.kpi.ok { border-top-color: var(--green); } .kpi.ok .kpi-v { color: var(--green-tx); }
+.kpi.warn { border-top-color: #F59E0B; } .kpi.warn .kpi-v { color: #B45309; }
+.kpi.bad { border-top-color: var(--red); } .kpi.bad .kpi-v { color: var(--red-tx); }
+.kpi.kb { border-top-color: var(--brand); }
+
+/* Status da escala — cores fixas em todo o sistema */
+.s-trab { background: var(--green-bg); color: var(--green-tx); }
+.s-fertrab { background: #BBF7D0; color: #14532D; box-shadow: inset 0 0 0 2px #60A5FA; }
+.s-ferpago { background: #A7F3D0; color: #064E3B; box-shadow: inset 0 0 0 2px #34D399; }
+.s-folga { background: var(--amber-bg); color: var(--amber-tx); }
+.s-feriado { background: var(--blue-bg); color: var(--blue-tx); }
+.s-comp { background: var(--teal-bg); color: var(--teal-tx); }
+.s-fechado { background: #FEF2F2; color: #B91C1C; }
+.s-ferias { background: var(--violet-bg); color: var(--violet-tx); }
+.s-afast { background: var(--rose-bg); color: var(--rose-tx); }
+.s-falta { background: #FED7AA; color: #9A3412; }
+
+.grade th, .grade td { padding: 4px 3px; text-align: center; }
+.grade th:first-child, .grade td:first-child { position: sticky; left: 0; z-index: 2; background: #fff; text-align: left; padding: 6px 12px; min-width: 168px; border-right: 1px solid var(--line); }
+.grade th:first-child { background: #F8FAFC; }
+.grade tfoot td:first-child { background: #F8FAFC; }
+.grade th.d { min-width: 52px; line-height: 1.15; }
+.grade th.d b { display: block; font-size: 13px; color: var(--ink); }
+.grade th.d small { font-size: 10px; }
+.grade th.dom { background: #EEF2F7; }
+.grade th.fer { background: var(--blue-bg); }
+.grade th.fer small { color: var(--blue-tx); }
+.grade td.tot { font-weight: 700; font-variant-numeric: tabular-nums; padding: 0 10px; white-space: nowrap; }
+.nome { font-weight: 650; font-size: 13px; white-space: nowrap; }
+.meta { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.cell { width: 100%; min-width: 48px; justify-content: center; padding: 7px 3px; border-radius: 7px; font-size: 10.5px; font-weight: 700; border: 1px solid transparent; position: relative; font-variant-numeric: tabular-nums; }
+.cell:hover { border-color: rgba(15,23,42,.25); }
+.cell.manual::after { content: ""; position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; border-radius: 50%; background: #2563EB; }
+.cell.troca::before { content: ""; position: absolute; top: 3px; left: 3px; width: 6px; height: 6px; border-radius: 50%; background: #DB2777; }
+.cov { display: inline-block; min-width: 28px; padding: 3px 0; border-radius: 6px; font-size: 11px; font-weight: 800; }
+.cov.c0 { background: var(--red-bg); color: var(--red-tx); }
+.cov.c1 { background: var(--amber-bg); color: var(--amber-tx); }
+.cov.c2 { background: var(--green-bg); color: var(--green-tx); }
+.cov.cx { background: var(--gray-bg); color: var(--gray-tx); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+
+.alerts { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; max-height: 460px; overflow-y: auto; }
+.alerts li { padding: 9px 12px; border-radius: 9px; font-size: 12.5px; border-left: 4px solid; display: flex; gap: 8px; }
+.al-err { background: #FEF2F2; color: var(--red-tx); border-color: var(--red) !important; }
+.al-warn { background: #FFFBEB; color: #92400E; border-color: #F59E0B !important; }
+.al-info { background: #EFF6FF; color: var(--blue-tx); border-color: #3B82F6 !important; }
+.al-ok { background: #F0FDF4; color: var(--green-tx); border-color: var(--green) !important; }
+
+.bar { height: 8px; background: var(--gray-bg); border-radius: 999px; overflow: hidden; min-width: 60px; }
+.bar i { display: block; height: 100%; background: var(--brand); border-radius: 999px; }
+
+.onb { border-color: color-mix(in srgb, var(--brand) 35%, #fff); background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 7%, #fff), #fff 70%); }
+.steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 9px; }
+.steps li { display: flex; gap: 10px; align-items: center; font-size: 13.5px; }
+.steps li span { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line-2); display: grid; place-items: center; font-size: 11px; font-weight: 800; color: #fff; flex-shrink: 0; }
+.steps li.ok { color: var(--muted); text-decoration: line-through; }
+.steps li.ok span { background: var(--green); border-color: var(--green); }
+
+.saldo-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 12px; }
+.saldo { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.saldo .n { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.saldo.pos .n { color: var(--teal-tx); } .saldo.neg .n { color: var(--red-tx); } .saldo.zero .n { color: var(--muted); }
+
+.wa-card { border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 8px; }
+.wa-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.wa-card textarea { min-height: 150px; }
+
+/* Folhas imprimíveis */
+.sheet-h { display: flex; gap: 14px; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 2px solid var(--brand); }
+.sheet-h .logo { width: 52px; height: 52px; }
+.sheet-h h3 { margin: 0; font-size: 17px; }
+.sheet-h p { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+.sheet-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 9px; overflow: hidden; margin-bottom: 14px; }
+.sheet-meta div { background: #F8FAFC; padding: 9px 12px; font-size: 13px; }
+.sheet-meta small { display: block; font-size: 11px; color: var(--muted); font-weight: 600; }
+.sign { margin-top: 46px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+.sign div { border-top: 1px solid #334155; padding-top: 6px; text-align: center; font-size: 12px; color: var(--muted); }
+.sheet-foot { margin-top: 14px; font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
+
+.logo-up { display: flex; gap: 14px; align-items: center; }
+.logo-up .logo { width: 72px; height: 72px; font-size: 22px; border-radius: 14px; }
+.swatches { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.swatches button { width: 30px; height: 30px; border-radius: 50%; padding: 0; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--line-2); }
+.swatches button.sel { box-shadow: 0 0 0 2px var(--ink); }
+
+.modal-bg { position: fixed; inset: 0; background: rgba(15,23,42,.5); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 80; }
+.modal-bg.open { display: flex; }
+.modal { background: #fff; border-radius: 14px; width: 100%; max-width: 460px; padding: 22px; display: grid; gap: 14px; box-shadow: 0 24px 60px rgba(0,0,0,.3); }
+.modal h3 { margin: 0; font-size: 16px; }
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--ink); color: #fff; padding: 11px 16px; border-radius: 10px; font-size: 13px; opacity: 0; transform: translateY(8px); transition: all .2s; pointer-events: none; z-index: 90; max-width: calc(100vw - 40px); }
+.toast.show { opacity: 1; transform: none; }
+
+/* ---------- Celular ---------- */
+@media (max-width: 900px) {
+  .app, body.side-mini .app { grid-template-columns: minmax(0,1fr); }
+  .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 270px; transform: translateX(-100%); transition: transform .2s; box-shadow: 0 0 40px rgba(0,0,0,.3); }
+  body.side-open .sidebar { transform: none; }
+  body.side-mini .brand-txt, body.side-mini .nav-label, body.side-mini .nav-btn span, body.side-mini .emp-switch, body.side-mini .side-foot { display: revert; }
+  body.side-mini .nav-btn { justify-content: flex-start; }
+  body.side-open .overlay { display: block; position: fixed; inset: 0; background: rgba(15,23,42,.45); z-index: 35; }
+  .topbar { padding: 10px 14px; gap: 10px; }
+  .top-title { order: 2; flex-basis: calc(100% - 60px); }
+  .month-nav { order: 3; }
+  .save-state { order: 4; }
+  main { padding: 14px 12px 50px; }
+  .card { padding: 14px; }
+  .stack thead { display: none; }
+  .stack tr { display: grid; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  .stack td { display: flow-root; border: 0; padding: 3px 0; padding-inline-start: 8.5em; text-align: start; }
+  .stack td::before { content: attr(data-l); float: inline-start; width: 8em; margin-inline-start: -8.5em; color: var(--muted); font-size: 12px; font-weight: 600; }
+  .stack td:empty { display: none; }
+  .sign { grid-template-columns: 1fr; gap: 34px; }
+}
+
+/* ---------- Impressão ---------- */
+@media print {
+  body { background: #fff; }
+  body.imprimindo * { visibility: hidden; }
+  body.imprimindo .print-on, body.imprimindo .print-on * { visibility: visible; }
+  body.imprimindo .print-on { position: absolute; left: 0; top: 0; width: 100%; border: 0; box-shadow: none; padding: 0; }
+  .no-print { display: none !important; }
+  .tbl-wrap { overflow: visible; border: 0; }
+  .grade th:first-child, .grade td:first-child { position: static; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  table { font-size: 10.5px; }
+}
+
+/* Cobertura abaixo do mínimo (0.5.0) */
+.deficit { border: 1px solid #FCA5A5; border-left: 5px solid var(--red); background: linear-gradient(180deg, #FEF2F2, #fff 60%); }
+.deficit h2 { color: var(--red-tx); }
+.cov { min-width: 34px; }
+.turnos { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.turno-chip { display: inline-flex; align-items: center; gap: 4px; background: var(--gray-bg); border: 1px solid var(--line-2); border-radius: 999px; padding: 3px 4px 3px 10px; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.turno-chip button { background: transparent; border: 0; padding: 0 6px; color: var(--muted); font-size: 14px; line-height: 1; }
+.turno-chip button:hover { color: var(--red-tx); }
+.turno-add { display: inline-flex; gap: 4px; align-items: center; }
+.turno-add input { width: 96px; padding: 5px 6px; }
+.func-info { font-size: 11.5px; color: var(--muted); margin-top: 4px; line-height: 1.35; }
+input[type=checkbox] { flex-shrink: 0; }
+td input[type=time] { width: 104px; padding: 6px 4px; }
+td input[type=number] { padding: 6px; }
+.toggle { white-space: nowrap; }
+@media (min-width: 901px) { .tbl-wrap table.stack td:first-child b { white-space: nowrap; } }
+
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="side-scroll">
+      <div class="brand">
+        <div class="logo" id="sideLogo">EL</div>
+        <div class="brand-txt">
+          <div class="brand-name" id="sideNome">Sua empresa</div>
+          <div class="brand-sub">Eskla · escalas 5x2</div>
+        </div>
+      </div>
+      <div class="emp-switch">
+        <select id="empSelect" onchange="trocarEmpresa(this.value)" title="Empresa ativa"></select>
+        <button onclick="criarEmpresa()" title="Cadastrar nova empresa">+</button>
+      </div>
+      <nav id="nav"></nav>
+    </div>
+    <div class="side-foot">
+      <div class="rule-chip"><strong>EC 141/2026 — fim da 6x1</strong>5x2 com 2 repousos por semana · 42h na transição · teto de 40h após 14 meses.</div>
+      <div class="plan" id="planInfo">Plano: avaliação · 1 empresa</div>
+    </div>
+  </aside>
+  <div class="overlay" onclick="toggleSide()"></div>
+
+  <div class="content">
+    <header class="topbar">
+      <button class="icon-btn" onclick="toggleSide()" title="Abrir/fechar menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="top-title"><h1 id="pgTitulo">Painel</h1><p id="pgSub">—</p></div>
+      <div class="month-nav" title="Mês da escala">
+        <button onclick="mudarMes(-1)" aria-label="Mês anterior">‹</button>
+        <div class="lbl" id="mesLabel">—</div>
+        <button onclick="mudarMes(1)" aria-label="Próximo mês">›</button>
+      </div>
+      <div class="save-state" id="saveState">—</div>
+    </header>
+    <main id="view"></main>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal" onclick="if(event.target===this) fecharModal()">
+  <div class="modal">
+    <h3 id="mTitulo">Editar dia</h3>
+    <div class="field"><label for="mStatus">O que acontece neste dia</label><select id="mStatus" onchange="sugerirModal()"></select></div>
+    <div class="grid" style="grid-template-columns:1fr 1fr;">
+      <div class="field"><label for="mHorario">Horário</label><input id="mHorario" placeholder="08:00–17:00" /></div>
+      <div class="field"><label for="mHoras">Horas</label><input id="mHoras" type="number" step="0.5" min="0" max="12" /></div>
+    </div>
+    <div class="help">O ajuste manual tem prioridade sobre a geração automática e fica marcado com um ponto azul.</div>
+    <div class="form-actions" style="margin-top:0;justify-content:space-between;">
+      <button class="btn-ghost" onclick="removerAjuste()">Voltar ao automático</button>
+      <div style="display:flex;gap:8px;"><button class="btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn-primary" onclick="salvarAjuste()">Aplicar</button></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<input type="file" id="fileImport" accept=".json" hidden onchange="importarJSON(event)" />
+<input type="file" id="fileLogo" accept="image/*" hidden onchange="carregarLogo(event)" />
+<script>
+/* ============================================================
+   Eskla — motor de escala 5x2 + interface
+   ============================================================ */
+const VERSAO = "0.5.0";
+const STORE_KEY = "escalalocal_pro_v2";
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const uid = p => p + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const pad = n => String(n).padStart(2, "0");
+const isoOf = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parseISO = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+const addDias = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const br = iso => iso ? iso.split("-").reverse().join("/") : "—";
+const brC = iso => iso ? `${iso.slice(8)}/${iso.slice(5, 7)}` : "";
+const toMin = t => { if (!t || !/^\d{1,2}:\d{2}$/.test(t)) return null; const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+const fromMin = m => { m = ((m % 1440) + 1440) % 1440; return `${pad(Math.floor(m / 60))}:${pad(m % 60)}`; };
+const fmtH = h => { const n = Math.round(h * 100) / 100; const hh = Math.floor(n), mm = Math.round((n - hh) * 60); return mm ? `${hh}h${pad(mm)}` : `${hh}h`; };
+const mesAtual = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`; };
+const DOW = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+const DIAS_CFG = [
+  { id: "segunda", label: "Segunda", dow: 1 }, { id: "terca", label: "Terça", dow: 2 },
+  { id: "quarta", label: "Quarta", dow: 3 }, { id: "quinta", label: "Quinta", dow: 4 },
+  { id: "sexta", label: "Sexta", dow: 5 }, { id: "sabado", label: "Sábado", dow: 6 },
+  { id: "domingo", label: "Domingo", dow: 0 }, { id: "feriado", label: "Feriado", dow: -1 }
+];
+
+/* Status: cores fixas em todo o sistema */
+const ST = {
+  TRAB:          { label: "Trabalho", curto: null, cls: "s-trab", trab: true },
+  FER_TRAB_COMP: { label: "Feriado trabalhado (gera folga)", curto: "Fer+F", cls: "s-fertrab", trab: true },
+  FER_TRAB_PAGO: { label: "Feriado trabalhado (pago)", curto: "Fer+$", cls: "s-ferpago", trab: true },
+  FOLGA:         { label: "Folga semanal", curto: "Folga", cls: "s-folga", rsr: true },
+  FER_FOLGA:     { label: "Feriado (folga)", curto: "Feriado", cls: "s-feriado" },
+  COMP:          { label: "Folga compensatória", curto: "Comp.", cls: "s-comp" },
+  FECHADO:       { label: "Loja fechada", curto: "Fechada", cls: "s-fechado", rsr: true },
+  FERIAS:        { label: "Férias", curto: "Férias", cls: "s-ferias" },
+  AFAST:         { label: "Afastamento / atestado", curto: "Afast.", cls: "s-afast" },
+  FALTA:         { label: "Falta", curto: "Falta", cls: "s-falta" }
+};
+const TIPOS_OC = { FERIAS: "Férias", AFAST: "Afastamento / atestado", FALTA: "Falta injustificada" };
+const TRAT_FER = { FOLGA: "Folga para todos", COMP: "Revezamento + folga compensatória", PAGO: "Revezamento + pagamento em dobro" };
+const CORES = ["#0F766E", "#1D4ED8", "#7C3AED", "#BE123C", "#C2410C", "#15803D", "#0E7490", "#334155"];
+const RAMOS = ["Farmácia / Drogaria", "Mercado / Mercearia", "Padaria / Cafeteria", "Loja / Varejo", "Clínica / Saúde / Estética", "Restaurante / Lanchonete", "Posto / Conveniência", "Outro"];
+
+let S = null, E = null, view = "painel", calc = null, razaoCache = null;
+const ui = { semana: 0, filtro: "todas", col: null, modal: null };
+
+/* ---------------- Dados ---------------- */
+function novaEmpresa() {
+  return {
+    id: uid("emp"),
+    empresa: { razao: "", fantasia: "", cnpj: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", uf: "", cep: "", telefone: "", ramo: "", logo: "", cor: CORES[0] },
+    competencia: mesAtual(),
+    horarios: Object.fromEntries(DIAS_CFG.map(d => [d.id, { aberto: true, abertura: "", almocoSaida: "", almocoRetorno: "", fechamento: "", minimo: 1, bloqueiaFolga: false }])),
+    regras: { jornada: 42, folgasSemana: 2, maxDias: 6, descanso: 11, divisor: 210, priorizarFeriadoFolga: false, inicioRevezamento: "" },
+    funcoes: [], equipe: [], feriados: [], trocas: [], ocorrencias: [], compensacoes: [], ajustes: {}
+  };
+}
+function novaFuncao(nome = "", setor = "") {
+  return { id: uid("fun"), nome, setor, turnos: [], minUtil: 0, minFeriado: 0 };
+}
+/* Completa campos novos e migra dados de versões anteriores sem perder nada. */
+function normalizar(e) {
+  const b = novaEmpresa();
+  const regrasAntigas = { ...(e.regras || {}) };
+  const horariosAntigos = JSON.parse(JSON.stringify(e.horarios || {}));
+  for (const k of Object.keys(b)) if (e[k] == null) e[k] = b[k];
+  e.empresa = { ...b.empresa, ...e.empresa };
+  e.regras = { ...b.regras, ...e.regras };
+  DIAS_CFG.forEach(d => e.horarios[d.id] = { ...b.horarios[d.id], ...(horariosAntigos[d.id] || {}) });
+  // 0.4.0 → 0.5.0: "pessoas por domingo/feriado" viram o mínimo do dia
+  if (regrasAntigas.pessoasDomingo != null && horariosAntigos.domingo?.minimo == null) e.horarios.domingo.minimo = Number(regrasAntigas.pessoasDomingo) || 1;
+  if (regrasAntigas.pessoasFeriado != null && horariosAntigos.feriado?.minimo == null) e.horarios.feriado.minimo = Number(regrasAntigas.pessoasFeriado) || 1;
+  delete e.regras.pessoasDomingo; delete e.regras.pessoasFeriado;
+  // "Feriado conta como folga" deixou de ser o padrão: virou a opção "Priorizar feriados" (desmarcada)
+  delete e.regras.feriadoContaFolga;
+  // Função em texto livre vira cadastro de Funções, ligado por funcaoId
+  e.equipe.forEach(c => {
+    if (c.funcaoId && e.funcoes.some(f => f.id === c.funcaoId)) return;
+    const nome = String(c.funcao || "").trim();
+    if (!nome) { c.funcaoId = ""; return; }
+    let f = e.funcoes.find(x => x.nome.toLowerCase() === nome.toLowerCase());
+    if (!f) { f = novaFuncao(nome); e.funcoes.push(f); }
+    c.funcaoId = f.id;
+  });
+  e.funcoes.forEach(f => { f.turnos = Array.isArray(f.turnos) ? f.turnos : []; f.minUtil = Number(f.minUtil) || 0; f.minFeriado = Number(f.minFeriado) || 0; });
+  return e;
+}
+const funcaoDe = c => E.funcoes.find(f => f.id === c.funcaoId) || null;
+const funcNome = c => funcaoDe(c)?.nome || "Sem função";
+function carregar() {
+  try { const raw = localStorage.getItem(STORE_KEY); if (raw) S = JSON.parse(raw); } catch { S = null; }
+  if (!S || !S.empresas || !Object.keys(S.empresas).length) {
+    const e = novaEmpresa();
+    S = { versao: 2, ativa: e.id, empresas: { [e.id]: e }, ui: { mini: false, view: "painel" } };
+  }
+  S.ui = S.ui || {};
+  E = normalizar(S.empresas[S.ativa] || Object.values(S.empresas)[0]);
+  S.ativa = E.id;
+  view = S.ui.view || "painel";
+  if (S.ui.mini) document.body.classList.add("side-mini");
+}
+let tSave;
+function salvarJa() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify(S));
+    const d = new Date(); $("saveState").textContent = `✓ Salvo às ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  } catch { $("saveState").textContent = "⚠ Não salvo — faça o backup"; }
+}
+function salvar() { razaoCache = null; $("saveState").textContent = "Salvando…"; clearTimeout(tSave); tSave = setTimeout(salvarJa, 350); }
+function upd(fn, rerender = false) { fn(E); salvar(); if (rerender) render(); else { aplicarMarca(); renderSidebar(); } }
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(window._tt); window._tt = setTimeout(() => t.classList.remove("show"), 2400); }
+const nomeEmp = () => E.empresa.fantasia || E.empresa.razao || "Sua empresa";
+const colById = id => E.equipe.find(c => c.id === id);
+const nomeCol = id => colById(id)?.nome || "(removido)";
+
+/* ---------------- Feriados nacionais (cálculo da Páscoa) ---------------- */
+function pascoa(y) {
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25),
+    g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4,
+    l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451),
+    mo = Math.floor((h + l - 7 * m + 114) / 31), da = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(y, mo - 1, da);
+}
+function feriadosNacionais(y) {
+  return [[`${y}-01-01`, "Confraternização Universal"], [isoOf(addDias(pascoa(y), -2)), "Paixão de Cristo"], [`${y}-04-21`, "Tiradentes"],
+    [`${y}-05-01`, "Dia do Trabalho"], [`${y}-09-07`, "Independência do Brasil"], [`${y}-10-12`, "Nossa Senhora Aparecida"],
+    [`${y}-11-02`, "Finados"], [`${y}-11-15`, "Proclamação da República"], [`${y}-11-20`, "Dia Nacional de Zumbi e da Consciência Negra"], [`${y}-12-25`, "Natal"]];
+}
+
+/* ============================================================
+   MOTOR DE ESCALA (0.5.0 — guiado por funções e mínimos)
+   Semanas de segunda a domingo. Ordem de prioridade:
+   a) situações fixas: ajustes manuais, férias, afastamentos, faltas,
+      folgas compensatórias, feriados de folga geral e dias fechados;
+   b) feriados abertos: escala primeiro o mínimo de cada função,
+      depois completa o mínimo geral do feriado; os demais folgam;
+   c) folgas semanais: cada pessoa recebe as folgas que a semana exige,
+      nos dias permitidos e onde sobra mais gente, sem deixar função
+      ou loja abaixo do mínimo sempre que houver alternativa;
+   d) turnos montados nas janelas da função, dentro do horário da loja.
+   Nunca tira folga semanal nem aumenta carga para cobrir mínimo:
+   quando falta gente, a escala mantém os limites e o painel alerta.
+   Depois: limite de dias seguidos e trocas pontuais.
+   ============================================================ */
+function horasDiaCol(c, R = E.regras) {
+  const diasTrab = 7 - (Number(R.folgasSemana) || 2);
+  return Math.min(10, Math.round((Number(c.carga) || 0) / diasTrab * 100) / 100);
+}
+const ehFolgaSemanal = (st, R = E.regras) => st === "FOLGA" || st === "FECHADO" || (st === "FER_FOLGA" && !!R.priorizarFeriadoFolga);
+function minimosDoDia(d) {
+  if (!d.aberto) return { geral: 0, porFuncao: {} };
+  const porFuncao = {};
+  E.funcoes.forEach(f => { const n = Number(d.fer ? f.minFeriado : f.minUtil) || 0; if (n > 0) porFuncao[f.id] = n; });
+  return { geral: Number(d.cfg?.minimo) || 0, porFuncao };
+}
+// Bloqueio de folga vale para o dia da semana; em feriado é desconsiderado.
+const folgaPermitida = d => !!d.fer || !E.horarios[d.wkey]?.bloqueiaFolga;
+
+function janelasDoDia(c, d) {
+  const f = funcaoDe(c), cfg = d.cfg || {};
+  const ab = toMin(cfg.abertura), fe = toMin(cfg.fechamento);
+  let jan = (f?.turnos || []).map(t => [toMin(t.ini), toMin(t.fim)]).filter(([a, b]) => a != null && b != null && b > a);
+  if (jan.length && ab != null && fe != null && fe > ab) {
+    const dentro = jan.map(([a, b]) => [Math.max(a, ab), Math.min(b, fe)]).filter(([a, b]) => b > a);
+    if (dentro.length) jan = dentro;
+  }
+  return jan.sort((x, y) => x[0] - y[0]);
+}
+function turnoContinuo(h, a, b, ci, pausaPadrao) {
+  const dur = Math.round(h * 60) + pausaPadrao;
+  let ini, fim;
+  if (b - a <= dur) { ini = a; fim = b; }
+  else if (ci % 2 === 0) { ini = a; fim = a + dur; }   // abre
+  else { fim = b; ini = b - dur; }                      // fecha
+  const horas = Math.min(h, Math.max(0, (fim - ini - pausaPadrao) / 60));
+  return { horas: Math.round(horas * 100) / 100, horario: `${fromMin(ini)}–${fromMin(fim)}`, ini, fim };
+}
+// Turnos da função = janelas de disponibilidade. Encaixa a carga do dia nelas;
+// o espaço entre duas janelas funciona como intervalo.
+function turno(c, ci, d) {
+  const cfg = d.cfg || {}, h = horasDiaCol(c);
+  const ls = toMin(cfg.almocoSaida), lr = toMin(cfg.almocoRetorno);
+  const pausa = h > 6 ? (ls != null && lr != null && lr > ls ? lr - ls : 60) : (h > 4 ? 15 : 0);
+  const jan = janelasDoDia(c, d);
+  if (jan.length) {
+    const precisa = Math.round(h * 60), ordem = ci % 2 === 0 ? jan : [...jan].reverse();
+    let resto = precisa; const segs = [];
+    for (const [a, b] of ordem) {
+      if (resto <= 0) break;
+      const usa = Math.min(b - a, resto);
+      segs.push(ci % 2 === 0 ? [a, a + usa] : [b - usa, b]);
+      resto -= usa;
+    }
+    if (segs.length === 1) {
+      const j = jan.find(([a, b]) => segs[0][0] >= a && segs[0][1] <= b);
+      return turnoContinuo(h, j[0], j[1], ci, pausa);
+    }
+    segs.sort((x, y) => x[0] - y[0]);
+    const min = segs.reduce((s, [a, b]) => s + b - a, 0);
+    return { horas: Math.round(min / 60 * 100) / 100, horario: segs.map(([a, b]) => `${fromMin(a)}–${fromMin(b)}`).join(" / "), ini: segs[0][0], fim: segs[segs.length - 1][1], dividido: true };
+  }
+  const ab = toMin(cfg.abertura), fe = toMin(cfg.fechamento);
+  if (ab == null || fe == null || fe <= ab) return { horas: h, horario: fmtH(h), ini: null, fim: null };
+  return turnoContinuo(h, ab, fe, ci, pausa);
+}
+function gerarEscala(emp, comp) {
+  const Eo = E; E = emp;
+  try { return gerarEscalaInterno(comp || emp.competencia); } finally { E = Eo; }
+}
+function gerarEscalaInterno(comp) {
+  const [ano, mes] = comp.split("-").map(Number);
+  const prim = new Date(ano, mes - 1, 1), ult = new Date(ano, mes, 0);
+  const ini = addDias(prim, -((prim.getDay() + 6) % 7)), fim = addDias(ult, (7 - ult.getDay()) % 7);
+  const R = E.regras;
+  const ferMap = Object.fromEntries(E.feriados.map(f => [f.data, f]));
+  const dias = [];
+  for (let d = new Date(ini); d <= fim; d = addDias(d, 1)) {
+    const iso = isoOf(d), dow = d.getDay(), fer = ferMap[iso] || null;
+    const wkey = DIAS_CFG.find(x => x.dow === dow).id;
+    const key = fer && fer.tratamento !== "FOLGA" ? "feriado" : wkey;
+    const cfg = E.horarios[key];
+    const aberto = fer ? fer.tratamento !== "FOLGA" : !!cfg.aberto;
+    dias.push({ iso, dow, dia: d.getDate(), fer, cfg, wkey, aberto, dentro: d.getMonth() === mes - 1 });
+  }
+  const equipe = E.equipe.filter(c => c.status === "Ativo");
+  const idx = Object.fromEntries(equipe.map((c, i) => [c.id, i]));
+  const G = {}, meta = { folgaBloqueada: [] };
+  equipe.forEach(c => G[c.id] = {});
+
+  // a) Situações fixas (o ajuste manual tem prioridade sobre tudo)
+  equipe.forEach(c => dias.forEach(d => {
+    const aj = E.ajustes?.[c.id]?.[d.iso];
+    if (aj) { G[c.id][d.iso] = { ...aj, manual: true }; return; }
+    const oc = E.ocorrencias.find(o => o.colId === c.id && d.iso >= o.inicio && d.iso <= o.fim);
+    let st = null;
+    if (oc) st = oc.tipo;
+    else if (E.compensacoes.some(x => x.colId === c.id && x.tipo === "FOLGA" && x.data === d.iso)) st = "COMP";
+    else if (d.fer && d.fer.tratamento === "FOLGA") st = "FER_FOLGA";
+    else if (!d.aberto) st = "FECHADO";
+    if (st) G[c.id][d.iso] = { st };
+  }));
+
+  const livre = (c, d) => !G[c.id][d.iso];
+  const trabalha = (c, d) => { const cel = G[c.id][d.iso]; return cel ? !!ST[cel.st]?.trab : d.aberto; };
+  const noDia = d => equipe.filter(c => trabalha(c, d)).length;
+  const daFuncao = (d, fid) => equipe.filter(c => c.funcaoId === fid && trabalha(c, d)).length;
+  const ferRot = E.feriados.filter(f => f.tratamento !== "FOLGA").map(f => f.data).sort();
+
+  // Revezamento de domingo: quem trabalhou mais domingos tem preferência para folgar no domingo.
+  const fila = equipe.filter(c => c.domingo);
+  const base = R.inicioRevezamento ? parseISO(R.inicioRevezamento) : new Date(2026, 0, 4);
+  const k0 = Math.round((parseISO(dias[6].iso) - base) / (7 * 864e5));
+  const domingos = {};
+  fila.forEach((c, i) => domingos[c.id] = ((((i - k0) % fila.length) + fila.length) % fila.length) / fila.length);
+
+  for (let w = 0; w < dias.length / 7; w++) {
+    const sem = dias.slice(w * 7, w * 7 + 7);
+
+    // Domingo: quem não faz revezamento folga (conta como folga semanal)
+    sem.filter(d => d.dow === 0 && d.aberto && !d.fer).forEach(d => equipe.forEach(c => { if (livre(c, d) && !c.domingo) G[c.id][d.iso] = { st: "FOLGA" }; }));
+
+    // b) Feriados abertos: mínimo por função, depois mínimo geral; demais folgam
+    sem.filter(d => d.fer && d.aberto).forEach(d => {
+      const stTrab = d.fer.tratamento === "COMP" ? "FER_TRAB_COMP" : "FER_TRAB_PAGO";
+      const eleg = equipe.filter(c => livre(c, d) && (d.dow !== 0 || c.domingo));
+      const start = eleg.length ? (Math.max(0, ferRot.indexOf(d.iso)) % eleg.length) : 0;
+      const ordem = eleg.map((_, i) => eleg[(start + i) % eleg.length]);
+      const esc = new Set();
+      const contaF = fid => equipe.filter(c => c.funcaoId === fid && (esc.has(c.id) || (G[c.id][d.iso] && ST[G[c.id][d.iso].st]?.trab))).length;
+      const contaG = () => esc.size + equipe.filter(c => G[c.id][d.iso] && ST[G[c.id][d.iso].st]?.trab).length;
+      const { geral, porFuncao } = minimosDoDia(d);
+      Object.entries(porFuncao).forEach(([fid, n]) => { for (const c of ordem) { if (contaF(fid) >= n) break; if (c.funcaoId === fid) esc.add(c.id); } });
+      for (const c of ordem) { if (contaG() >= geral) break; esc.add(c.id); }
+      eleg.forEach(c => G[c.id][d.iso] = esc.has(c.id) ? { st: stTrab, pend: true } : { st: "FER_FOLGA" });
+    });
+
+    // c) Folgas semanais
+    const precisa = {};
+    equipe.forEach(c => {
+      const disp = sem.filter(d => !["FERIAS", "AFAST"].includes(G[c.id][d.iso]?.st)).length;
+      const n = Math.round((Number(R.folgasSemana) || 2) * disp / 7) - sem.filter(d => ehFolgaSemanal(G[c.id][d.iso]?.st, R)).length;
+      precisa[c.id] = Math.max(0, n);
+    });
+    // Quem trabalhou mais domingos escolhe primeiro (e tende a folgar no domingo): revezamento contínuo entre meses.
+    const n = equipe.length || 1;
+    const ordem = [...equipe].sort((a, b) => (domingos[b.id] ?? -1) - (domingos[a.id] ?? -1) || ((idx[a.id] - w) % n + n) % n - ((idx[b.id] - w) % n + n) % n);
+    const pontua = (c, d) => {
+      const { geral, porFuncao } = minimosDoDia(d);
+      const minF = porFuncao[c.funcaoId] || 0, exige = Math.max(geral, Object.values(porFuncao).reduce((s, n) => s + n, 0));
+      const tot = noDia(d), fun = c.funcaoId ? daFuncao(d, c.funcaoId) : 0;
+      const okF = !minF || fun - 1 >= minF, okG = !d.aberto || tot - 1 >= geral;
+      return [folgaPermitida(d) ? 1 : 0, okF && okG ? 1 : 0, okF ? 1 : 0, d.aberto ? tot - exige : 99, minF ? fun - minF : 99,
+        d.dow === 0 ? (domingos[c.id] || 0) : 0, -((d.dow + idx[c.id] * 2 + w) % 7)];
+    };
+    const melhor = (a, b) => { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] > b[i]; return false; };
+    let mudou = true;
+    while (mudou) {
+      mudou = false;
+      for (const c of ordem) {
+        if (!precisa[c.id]) continue;
+        const cands = sem.filter(d => livre(c, d));
+        if (!cands.length) { precisa[c.id] = 0; continue; }
+        let best = cands[0], bs = pontua(c, best);
+        for (const d of cands.slice(1)) { const s = pontua(c, d); if (melhor(s, bs)) { best = d; bs = s; } }
+        G[c.id][best.iso] = { st: "FOLGA" };
+        if (!bs[0] && best.dentro) meta.folgaBloqueada.push({ colId: c.id, iso: best.iso });
+        precisa[c.id]--; mudou = true;
+      }
+    }
+
+    // d) Turnos (alternância de abertura e fechamento dentro de cada função)
+    sem.forEach(d => {
+      const pos = {};
+      equipe.forEach(c => {
+        const cel = G[c.id][d.iso];
+        if (cel && !cel.pend) return;
+        const chave = c.funcaoId || "_", ci = (pos[chave] = (pos[chave] ?? -1) + 1) + w;
+        G[c.id][d.iso] = { st: cel?.st || "TRAB", ...turno(c, ci, d) };
+      });
+      fila.forEach(c => { if (d.dow === 0 && ST[G[c.id][d.iso]?.st]?.trab) domingos[c.id] = (domingos[c.id] || 0) + 1; });
+    });
+  }
+
+  // Limite de dias seguidos: vira folga extra (ajustes manuais são respeitados)
+  equipe.forEach(c => {
+    let seq = 0;
+    dias.forEach(d => {
+      const cel = G[c.id][d.iso];
+      if (ST[cel.st]?.trab) {
+        seq++;
+        if (seq > (Number(R.maxDias) || 6) && cel.st === "TRAB" && !cel.manual && d.dow !== 0) { G[c.id][d.iso] = { st: "FOLGA", extra: true }; seq = 0; }
+      } else seq = 0;
+    });
+  });
+
+  // Trocas pontuais
+  E.trocas.forEach(t => {
+    if (!G[t.colA]?.[t.data] || !G[t.colB]?.[t.data]) return;
+    const a = G[t.colA][t.data], b = G[t.colB][t.data];
+    G[t.colA][t.data] = { ...b, troca: true };
+    G[t.colB][t.data] = { ...a, troca: true };
+  });
+
+  const semanas = [];
+  for (let w = 0; w < dias.length / 7; w++) semanas.push(dias.slice(w * 7, w * 7 + 7));
+  return { ano, mes, dias, diasMes: dias.filter(d => d.dentro), semanas, G, equipe, meta };
+}
+
+/* Dias abaixo do mínimo (geral e por função), para alertas e destaque no painel. */
+function deficits(r = calc) {
+  const out = [];
+  const Eo = E;
+  r.diasMes.forEach(d => {
+    const { geral, porFuncao } = minimosDoDia(d);
+    if (!d.aberto) return;
+    const trab = r.equipe.filter(c => ST[r.G[c.id][d.iso]?.st]?.trab);
+    if (trab.length < geral) out.push({ iso: d.iso, dia: d, funcaoId: null, nome: "Loja", tem: trab.length, min: geral });
+    Object.entries(porFuncao).forEach(([fid, n]) => {
+      const tem = trab.filter(c => c.funcaoId === fid).length;
+      if (tem < n) out.push({ iso: d.iso, dia: d, funcaoId: fid, nome: E.funcoes.find(f => f.id === fid)?.nome || "Função", tem, min: n });
+    });
+  });
+  E = Eo;
+  return out;
+}
+
+/* ---------------- Compensações (razão de créditos e usos) ---------------- */
+function razao() {
+  if (razaoCache) return razaoCache;
+  const L = [];
+  const meses = [...new Set(E.feriados.filter(f => f.tratamento === "COMP").map(f => f.data.slice(0, 7)))];
+  meses.forEach(m => {
+    const r = m === E.competencia ? calc : gerarEscala(E, m);
+    E.feriados.filter(f => f.tratamento === "COMP" && f.data.startsWith(m)).forEach(f => {
+      Object.keys(r.G).forEach(cid => {
+        if (r.G[cid][f.data]?.st === "FER_TRAB_COMP") L.push({ colId: cid, data: f.data, qtd: 1, desc: `Trabalhou no feriado: ${f.descricao}`, origem: "Automático" });
+      });
+    });
+  });
+  E.compensacoes.forEach(x => L.push({
+    id: x.id, colId: x.colId, data: x.data, qtd: x.tipo === "CREDITO" ? 1 : -1, tipo: x.tipo, origem: "Lançamento",
+    desc: (x.tipo === "FOLGA" ? "Folga compensatória tirada" : x.tipo === "PAGAMENTO" ? "Compensado em pagamento" : "Crédito lançado") + (x.motivo ? ` — ${x.motivo}` : "")
+  }));
+  L.sort((a, b) => a.data.localeCompare(b.data));
+  razaoCache = L;
+  return L;
+}
+function saldoCol(cid) {
+  const L = razao().filter(l => l.colId === cid);
+  const ganho = L.filter(l => l.qtd > 0).reduce((s, l) => s + l.qtd, 0), usado = -L.filter(l => l.qtd < 0).reduce((s, l) => s + l.qtd, 0);
+  return { ganho, usado, saldo: ganho - usado };
+}
+
+/* ---------------- Resumo e alertas ---------------- */
+function resumoCol(c) {
+  const r = { trab: 0, horas: 0, folgas: 0, ferFolga: 0, comp: 0, ferias: 0, afast: 0, faltas: 0, domingos: 0, ferTrab: 0, ferPago: 0 };
+  calc.diasMes.forEach(d => {
+    const cel = calc.G[c.id]?.[d.iso]; if (!cel) return;
+    const s = cel.st;
+    if (ST[s]?.trab) { r.trab++; r.horas += Number(cel.horas) || 0; if (d.dow === 0) r.domingos++; }
+    if (s === "FOLGA" || s === "FECHADO") r.folgas++;
+    if (s === "FER_FOLGA") r.ferFolga++;
+    if (s === "COMP") r.comp++;
+    if (s === "FERIAS") r.ferias++;
+    if (s === "AFAST") r.afast++;
+    if (s === "FALTA") r.faltas++;
+    if (s === "FER_TRAB_COMP") r.ferTrab++;
+    if (s === "FER_TRAB_PAGO") r.ferPago++;
+  });
+  r.horas = Math.round(r.horas * 10) / 10;
+  return r;
+}
+function alertas() {
+  const A = [], R = E.regras, { G, equipe, dias, semanas, diasMes, meta } = calc;
+  const add = (t, x) => A.push({ t, x });
+  if (!equipe.length) return A;
+  equipe.forEach(c => {
+    if (Number(c.carga) > 42) add("err", `${c.nome}: ${c.carga}h por semana passa o limite de 42h da transição (EC 141/2026).`);
+    else if (Number(c.carga) > Number(R.jornada)) add("warn", `${c.nome}: ${c.carga}h por semana, acima da jornada padrão da loja (${R.jornada}h).`);
+  });
+  semanas.forEach(sem => {
+    if (!sem.some(d => d.dentro)) return;
+    equipe.forEach(c => {
+      const sts = sem.map(d => G[c.id][d.iso]?.st);
+      if (sts.some(s => s === "FERIAS" || s === "AFAST")) return;
+      const f = sts.filter(s => ehFolgaSemanal(s, R)).length;
+      if (f < R.folgasSemana) add("err", `${c.nome}: semana de ${brC(sem[0].iso)} a ${brC(sem[6].iso)} com ${f} folga(s); o mínimo é ${R.folgasSemana}.`);
+    });
+  });
+  equipe.forEach(c => {
+    let seq = 0, avisado = false;
+    dias.forEach(d => {
+      if (ST[G[c.id][d.iso]?.st]?.trab) { seq++; if (seq > R.maxDias && !avisado && d.dentro) { add("err", `${c.nome}: ${seq} dias seguidos de trabalho até ${brC(d.iso)} (limite ${R.maxDias}).`); avisado = true; } }
+      else seq = 0;
+    });
+    // descanso interjornada
+    for (let i = 1; i < dias.length; i++) {
+      const a = G[c.id][dias[i - 1].iso], b = G[c.id][dias[i].iso];
+      if (dias[i].dentro && ST[a?.st]?.trab && ST[b?.st]?.trab && a.fim != null && b.ini != null) {
+        const desc = (1440 - a.fim + b.ini) / 60;
+        if (desc < R.descanso) { add("err", `${c.nome}: só ${fmtH(desc)} de descanso entre ${brC(dias[i - 1].iso)} e ${brC(dias[i].iso)} (mínimo ${R.descanso}h).`); break; }
+      }
+    }
+  });
+  // Cobertura abaixo do mínimo, agrupada por função (ou loja) e semana
+  gruposDeficit().forEach(g => add("err", `${g.nome === "Loja" ? "Mínimo da loja" : `Função ${g.nome}`} abaixo do mínimo na semana de ${brC(g.sem[0])} a ${brC(g.sem[1])}: ${g.dias.map(x => `${DOW[x.dia.dow]} ${brC(x.iso)}${x.dia.fer ? " (feriado)" : ""} ${x.tem}/${x.min}`).join(", ")}.`));
+  meta.folgaBloqueada.forEach(x => add("warn", `${nomeCol(x.colId)}: folga em ${DOW[parseISO(x.iso).getDay()]} ${brC(x.iso)}, dia bloqueado para folgas, por falta de outro dia possível.`));
+  if (E.funcoes.some(f => f.minUtil || f.minFeriado) && equipe.some(c => !funcaoDe(c))) add("info", `Sem função cadastrada: ${equipe.filter(c => !funcaoDe(c)).map(c => c.nome).join(", ")}. Essas pessoas contam só para o mínimo geral.`);
+  if (Object.values(E.horarios).some(h => h.aberto && h.abertura && !h.almocoSaida) && equipe.some(c => horasDiaCol(c) > 6))
+    add("info", "Pausa de almoço não configurada em alguns dias: o sistema considera 1h de intervalo para jornadas acima de 6h.");
+  E.trocas.forEach(t => { const a = colById(t.colA), b = colById(t.colB); if (a && b && a.carga !== b.carga) add("warn", `Troca de ${brC(t.data)}: ${a.nome} (${a.carga}h) e ${b.nome} (${b.carga}h) têm jornadas diferentes.`); });
+  equipe.forEach(c => { const s = saldoCol(c.id).saldo; if (s > 0) add("info", `${c.nome}: ${s} folga(s) de feriado a compensar.`); if (s < 0) add("err", `${c.nome}: usou ${-s} compensação(ões) a mais do que tinha de crédito.`); });
+  const ordem = { err: 0, warn: 1, info: 2 };
+  return A.sort((a, b) => ordem[a.t] - ordem[b.t]);
+}
+
+function gruposDeficit() {
+  const grupos = {};
+  deficits().forEach(x => {
+    const sem = calc.semanas.find(s => s.some(d => d.iso === x.iso));
+    const k = `${x.funcaoId || "_"}|${sem[0].iso}`;
+    (grupos[k] = grupos[k] || { nome: x.nome, sem: [sem[0].iso, sem[6].iso], dias: [] }).dias.push(x);
+  });
+  return Object.values(grupos);
+}
+
+/* ---------------- Marca, navegação e layout ---------------- */
+const ICON = {
+  funcoes: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18"/>',
+  painel: '<path d="M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z"/>',
+  feriados: '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>',
+  trocas: '<path d="M7 7h13l-3-3M17 17H4l3 3"/>',
+  ocorrencias: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  compensacoes: '<path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/>',
+  aviso: '<path d="M4 4h16v12H5l-1 4z"/><path d="M8 9h8M8 12h5"/>',
+  espelho: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/>',
+  resumo: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  whatsapp: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/>',
+  empresa: '<path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M14 9h1M9 13h1M14 13h1M10 21v-4h4v4"/>',
+  funcionamento: '<circle cx="12" cy="12" r="9"/><path d="M12 6v6h5"/>',
+  equipe: '<circle cx="9" cy="8" r="3.5"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6M16 4.5a3.5 3.5 0 0 1 0 7M19 15c2 1 3 3 3 6"/>'
+};
+const NAV = [
+  ["Operação", [["painel", "Painel e escala"]]],
+  ["Lançamentos", [["feriados", "Feriados"], ["trocas", "Trocas pontuais"], ["ocorrencias", "Férias e ausências"], ["compensacoes", "Compensações"]]],
+  ["Relatórios", [["aviso", "Aviso semanal"], ["espelho", "Espelho mensal"], ["resumo", "Horas e folgas"], ["whatsapp", "Mensagens WhatsApp"]]],
+  ["Configuração", [["empresa", "Empresa"], ["funcionamento", "Funcionamento e jornada"], ["funcoes", "Funções"], ["equipe", "Equipe"]]]
+];
+const TITULOS = {
+  painel: ["Painel e escala", "Escala do mês gerada automaticamente, cobertura e alertas"],
+  feriados: ["Feriados", "Como cada feriado entra na escala"],
+  trocas: ["Trocas pontuais", "Permuta de dia entre dois colaboradores"],
+  ocorrencias: ["Férias e ausências", "Férias, afastamentos e faltas — a escala se redistribui sozinha"],
+  compensacoes: ["Compensações", "Créditos de feriado trabalhado e como foram compensados"],
+  aviso: ["Aviso semanal", "Quadro da semana para o mural — exporta em PDF"],
+  espelho: ["Espelho mensal", "Documento individual para conferência e assinatura"],
+  resumo: ["Horas e folgas", "Resumo mensal de horas trabalhadas e descansos"],
+  whatsapp: ["Mensagens WhatsApp", "Textos prontos para o grupo e para cada colaborador"],
+  empresa: ["Empresa", "Dados cadastrais, marca e backup"],
+  funcionamento: ["Funcionamento e jornada", "Horários da loja e regras de jornada"],
+  funcoes: ["Funções", "Setores, janelas de turno e mínimo de pessoas por função"],
+  equipe: ["Equipe", "Colaboradores, função, carga horária e revezamento de domingo"]
+};
+function luminancia(hex) { const n = parseInt(hex.slice(1), 16); const [r, g, b] = [n >> 16, (n >> 8) & 255, n & 255].map(v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * r + .7152 * g + .0722 * b; }
+function logoHTML() {
+  const e = E.empresa;
+  if (e.logo) return `<img src="${esc(e.logo)}" alt="">`;
+  const n = nomeEmp().split(/\s+/).filter(Boolean);
+  return esc(((n[0]?.[0] || "E") + (n[1]?.[0] || "")).toUpperCase());
+}
+function aplicarMarca() {
+  const cor = /^#[0-9a-f]{6}$/i.test(E.empresa.cor) ? E.empresa.cor : CORES[0];
+  document.documentElement.style.setProperty("--brand", cor);
+  document.documentElement.style.setProperty("--on-brand", luminancia(cor) > .45 ? "#0F172A" : "#fff");
+}
+function renderSidebar() {
+  $("sideLogo").innerHTML = logoHTML();
+  $("sideNome").textContent = nomeEmp();
+  $("empSelect").innerHTML = Object.values(S.empresas).map(e => `<option value="${esc(e.id)}" ${e.id === E.id ? "selected" : ""}>${esc(e.empresa.fantasia || e.empresa.razao || "Empresa sem nome")}</option>`).join("");
+  const nErr = calc ? alertas().filter(a => a.t === "err").length : 0;
+  $("nav").innerHTML = NAV.map(([g, itens]) => `<div class="nav-group"><div class="nav-label">${g}</div>${itens.map(([id, nome]) =>
+    `<button class="nav-btn ${view === id ? "active" : ""}" onclick="ir('${id}')" title="${nome}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[id]}</svg><span>${nome}</span>${id === "painel" && nErr ? `<em class="count">${nErr}</em>` : ""}</button>`).join("")}</div>`).join("");
+  const n = Object.keys(S.empresas).length;
+  $("planInfo").textContent = `Plano: avaliação · ${n} empresa${n > 1 ? "s" : ""} · v${VERSAO}`;
+}
+function renderTopo() {
+  const [y, m] = E.competencia.split("-").map(Number);
+  $("mesLabel").textContent = `${MESES[m - 1]} ${y}`;
+  $("pgTitulo").textContent = TITULOS[view][0];
+  $("pgSub").textContent = `${nomeEmp()} · ${TITULOS[view][1]}`;
+}
+function toggleSide() {
+  if (window.matchMedia("(max-width: 900px)").matches) document.body.classList.toggle("side-open");
+  else { document.body.classList.toggle("side-mini"); S.ui.mini = document.body.classList.contains("side-mini"); salvar(); }
+}
+function ir(v) { view = v; S.ui.view = v; document.body.classList.remove("side-open"); salvar(); render(); window.scrollTo({ top: 0 }); }
+function mudarMes(delta) {
+  const [y, m] = E.competencia.split("-").map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  E.competencia = `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+  ui.semana = 0; ui.filtro = "todas"; salvar(); render();
+}
+function render() {
+  aplicarMarca();
+  calc = gerarEscala(E);
+  razaoCache = null;
+  renderTopo();
+  $("view").innerHTML = VIEWS[view]();
+  renderSidebar();
+}
+
+/* ---------------- Peças reutilizáveis ---------------- */
+const opt = (v, l, sel) => `<option value="${esc(v)}" ${String(v) === String(sel) ? "selected" : ""}>${esc(l)}</option>`;
+const optsEquipe = (sel, soAtivos = true) => (soAtivos ? E.equipe.filter(c => c.status === "Ativo") : E.equipe).map(c => opt(c.id, `${c.nome} (${c.carga}h)`, sel)).join("");
+function rotuloCel(cel) {
+  if (!cel) return "—";
+  if (ST[cel.st]?.trab && cel.st === "TRAB") {
+    const t = String(cel.horario || "").match(/\d{2}:\d{2}/g);
+    if (t && t.length >= 2) { const c = x => x.endsWith(":00") ? x.slice(0, 2) : x; return `${c(t[0])}–${c(t[t.length - 1])}${t.length > 2 ? "*" : ""}`; }
+    return cel.horas ? fmtH(cel.horas) : "Trab.";
+  }
+  return ST[cel.st]?.curto || cel.st;
+}
+function textoCel(cel) {
+  if (!cel) return "—";
+  if (ST[cel.st]?.trab) return `${cel.horario || "Trabalho"}${cel.st !== "TRAB" ? ` (${ST[cel.st].label.toLowerCase()})` : ""}`;
+  return ST[cel.st]?.label || cel.st;
+}
+const legendaHTML = () => `<div class="legend">${["TRAB", "FOLGA", "FER_FOLGA", "FER_TRAB_COMP", "FER_TRAB_PAGO", "COMP", "FECHADO", "FERIAS", "AFAST", "FALTA"].map(k => `<span><i class="${ST[k].cls}"></i>${ST[k].label}</span>`).join("")}<span><i style="background:#2563EB;border-radius:50%;width:8px;height:8px"></i>Ajuste manual</span><span><i style="background:#DB2777;border-radius:50%;width:8px;height:8px"></i>Troca</span></div>`;
+function cabecalhoFolha(titulo, sub) {
+  const e = E.empresa;
+  const end = [e.logradouro && `${e.logradouro}${e.numero ? ", " + e.numero : ""}`, e.complemento, e.bairro, e.cidade && `${e.cidade}${e.uf ? "/" + e.uf : ""}`, e.cep && `CEP ${e.cep}`].filter(Boolean).join(" · ");
+  return `<div class="sheet-h"><div class="logo">${logoHTML()}</div><div><h3>${esc(titulo)}</h3><p>${esc(e.razao || nomeEmp())}${e.cnpj ? " · CNPJ " + esc(e.cnpj) : ""}</p>${end ? `<p>${esc(end)}</p>` : ""}${sub ? `<p>${esc(sub)}</p>` : ""}</div></div>`;
+}
+const rodapeFolha = () => `<div class="sheet-foot"><span>Gerado pelo Eskla</span><span>${new Date().toLocaleString("pt-BR")}</span></div>`;
+function semanasDoMes() {
+  return calc.semanas.filter(s => s.some(d => d.dentro)).map((s, i) => ({ i, dias: s, label: `Semana ${i + 1} · ${brC(s[0].iso)} a ${brC(s[6].iso)}` }));
+}
+function imprimir(id, orient = "landscape") {
+  const el = $(id); if (!el) return;
+  $("pageStyle").textContent = `@page { size: A4 ${orient}; margin: 10mm; }`;
+  el.classList.add("print-on"); document.body.classList.add("imprimindo");
+  const fim = () => { el.classList.remove("print-on"); document.body.classList.remove("imprimindo"); window.removeEventListener("afterprint", fim); };
+  window.addEventListener("afterprint", fim);
+  window.print();
+}
+function vazioEquipe(msg = "Cadastre a equipe para gerar a escala.") {
+  return `<div class="card"><div class="empty">${esc(msg)}<br><br><button class="btn-primary" onclick="ir('equipe')">Cadastrar equipe</button></div></div>`;
+}
+
+/* ============================================================
+   TELAS
+   ============================================================ */
+const VIEWS = {};
+
+VIEWS.painel = () => {
+  const { G, equipe, diasMes } = calc;
+  const A = alertas();
+  const e = E.empresa;
+  const passos = [
+    [!!(e.fantasia || e.razao), "Cadastre os dados da empresa", "empresa"],
+    [Object.values(E.horarios).some(h => h.abertura && h.fechamento), "Defina os horários de funcionamento", "funcionamento"],
+    [E.equipe.length > 0, "Cadastre a equipe e a carga de cada um", "equipe"],
+    [E.feriados.length > 0, "Lance os feriados do ano", "feriados"]
+  ];
+  const feitos = passos.filter(p => p[0]).length;
+  const onb = feitos < passos.length ? `
+    <div class="card onb">
+      <div class="card-h"><div><h2>Primeiros passos</h2><div class="sub">Configure uma vez; a escala de todos os meses é gerada automaticamente.</div></div><span class="badge b-blue">${feitos} de ${passos.length}</span></div>
+      <ol class="steps">${passos.map(([ok, t, v]) => `<li class="${ok ? "ok" : ""}"><span>${ok ? "✓" : ""}</span>${ok ? t : `<a href="#" onclick="ir('${v}');return false;" style="color:inherit">${t}</a>`}</li>`).join("")}</ol>
+      ${!E.equipe.length ? `<div class="form-actions" style="justify-content:flex-start"><button class="btn-ghost" onclick="carregarExemplo()">Ver o sistema com dados de exemplo</button></div>` : ""}
+    </div>` : "";
+
+  const horasTot = equipe.reduce((s, c) => s + resumoCol(c).horas, 0);
+  const abertos = diasMes.filter(d => d.aberto);
+  const DEF = deficits(), diasDef = new Set(DEF.map(x => x.iso));
+  const cobertos = abertos.filter(d => !diasDef.has(d.iso)).length;
+  const pct = abertos.length ? Math.round(cobertos / abertos.length * 100) : 0;
+  const nErr = A.filter(a => a.t === "err").length;
+  const saldoTot = equipe.reduce((s, c) => s + Math.max(0, saldoCol(c.id).saldo), 0);
+  const kpis = `<div class="kpis">
+    <div class="kpi kb"><div class="kpi-l">Equipe ativa</div><div class="kpi-v">${equipe.length}</div><div class="kpi-h">${E.equipe.length} cadastrados · ${equipe.filter(c => c.domingo).length} no revezamento</div></div>
+    <div class="kpi kb"><div class="kpi-l">Horas previstas no mês</div><div class="kpi-v">${Math.round(horasTot)}h</div><div class="kpi-h">soma da equipe</div></div>
+    <div class="kpi ${!equipe.length ? "" : pct === 100 ? "ok" : pct >= 90 ? "warn" : "bad"}"><div class="kpi-l">Cobertura da loja</div><div class="kpi-v">${equipe.length ? pct + "%" : "—"}</div><div class="kpi-h">${cobertos} de ${abertos.length} dias abertos com o mínimo</div></div>
+    <div class="kpi ${nErr ? "bad" : A.length ? "warn" : "ok"}"><div class="kpi-l">Alertas</div><div class="kpi-v">${A.length}</div><div class="kpi-h">${nErr} crítico(s)</div></div>
+    <div class="kpi ${saldoTot ? "warn" : "ok"}"><div class="kpi-l">Folgas a compensar</div><div class="kpi-v">${saldoTot}</div><div class="kpi-h">feriados trabalhados pendentes</div></div>
+  </div>`;
+  if (!equipe.length) return onb + kpis + vazioEquipe();
+
+  const sems = semanasDoMes();
+  const vis = ui.filtro === "todas" ? diasMes : (sems[Number(ui.filtro)]?.dias.filter(d => d.dentro) || diasMes);
+  const head = `<tr><th>Colaborador</th>${vis.map(d => `<th class="d ${d.fer ? "fer" : d.dow === 0 ? "dom" : ""}" title="${d.fer ? esc(d.fer.descricao) : ""}"><b>${pad(d.dia)}</b><small>${d.fer ? "FER" : DOW[d.dow]}</small></th>`).join("")}<th class="num">Horas</th></tr>`;
+  const body = equipe.map(c => {
+    const hrs = vis.reduce((s, d) => s + (ST[G[c.id][d.iso]?.st]?.trab ? Number(G[c.id][d.iso].horas) || 0 : 0), 0);
+    return `<tr><td><div class="nome">${esc(c.nome)}</div><div class="meta">${esc(funcNome(c))} · ${c.carga}h/sem</div></td>${vis.map(d => {
+      const cel = G[c.id][d.iso];
+      return `<td><button class="cell ${ST[cel.st]?.cls || ""} ${cel.manual ? "manual" : ""} ${cel.troca ? "troca" : ""}" title="${esc(`${c.nome} · ${br(d.iso)}: ${textoCel(cel)}${cel.extra ? " (folga extra: limite de dias seguidos)" : ""}`)}" onclick="abrirModal('${c.id}','${d.iso}')">${esc(rotuloCel(cel))}</button></td>`;
+    }).join("")}<td class="tot num">${fmtH(hrs)}</td></tr>`;
+  }).join("");
+  // Rodapé: total na loja e cada função com mínimo, no formato "tem/mínimo"
+  const linhaCob = (titulo, sub, conta, minimo) => `<tr><td><div class="nome">${esc(titulo)}</div><div class="meta">${esc(sub)}</div></td>${vis.map(d => {
+    if (!d.aberto) return `<td><span class="cov cx">—</span></td>`;
+    const n = conta(d), m = minimo(d);
+    return `<td><span class="cov ${n < m ? "c0" : "c2"}" title="${n} trabalhando · mínimo ${m}">${m ? `${n}/${m}` : n}</span></td>`;
+  }).join("")}<td></td></tr>`;
+  const trabEm = d => equipe.filter(c => ST[G[c.id][d.iso]?.st]?.trab);
+  const foot = linhaCob("Na loja", "trabalhando / mínimo", d => trabEm(d).length, d => minimosDoDia(d).geral)
+    + E.funcoes.filter(f => f.minUtil || f.minFeriado).map(f => linhaCob(f.nome, `função${f.setor ? " · " + f.setor : ""}`, d => trabEm(d).filter(c => c.funcaoId === f.id).length, d => minimosDoDia(d).porFuncao[f.id] || 0)).join("");
+  const grupos = gruposDeficit();
+  const destaque = grupos.length ? `<div class="card deficit"><div class="card-h"><div><h2>⚠ Cobertura abaixo do mínimo</h2><div class="sub">A escala não força folga a menos nem carga a mais para cobrir. Para resolver: ajuste manual, troca, nova contratação ou revisão dos mínimos.</div></div><span class="badge b-red">${DEF.length} ocorrência(s)</span></div>
+    <ul class="alerts">${grupos.map(g => `<li class="al-err">● <span><b>${esc(g.nome === "Loja" ? "Mínimo geral da loja" : g.nome)}</b> — semana de ${brC(g.sem[0])} a ${brC(g.sem[1])}: ${g.dias.map(x => `${DOW[x.dia.dow]} ${brC(x.iso)}${x.dia.fer ? " (feriado)" : ""} com ${x.tem} de ${x.min}`).join(" · ")}</span></li>`).join("")}</ul></div>` : "";
+
+  const resumo = equipe.map(c => { const r = resumoCol(c), s = saldoCol(c.id).saldo; return `<tr><td><b>${esc(c.nome)}</b></td><td class="num">${r.trab}</td><td class="num">${fmtH(r.horas)}</td><td class="num">${r.folgas + r.ferFolga}</td><td class="num">${r.domingos}</td><td class="num">${s > 0 ? `<span class="badge b-teal">${s}</span>` : s}</td></tr>`; }).join("");
+
+  return `${onb}${kpis}${destaque}
+  <div class="card" id="cardGrade">
+    <div class="card-h">
+      <div><h2>Escala de ${MESES[calc.mes - 1]} de ${calc.ano}</h2><div class="sub">Clique em um dia para ajustar. As linhas de baixo mostram quantos trabalham e o mínimo exigido: vermelho = abaixo do mínimo.</div></div>
+      <div class="acts no-print">
+        <select onchange="ui.filtro=this.value;render()" style="width:auto">${opt("todas", "Mês inteiro", ui.filtro)}${sems.map(s => opt(String(s.i), s.label, ui.filtro)).join("")}</select>
+        ${Object.keys(E.ajustes).some(k => Object.keys(E.ajustes[k]).length) ? `<button class="btn-ghost" onclick="limparAjustes()">Limpar ajustes</button>` : ""}
+        <button class="btn-ghost" onclick="imprimir('cardGrade')">Imprimir / PDF</button>
+      </div>
+    </div>
+    <div class="tbl-wrap"><table class="grade"><thead>${head}</thead><tbody>${body}</tbody><tfoot>${foot}</tfoot></table></div>
+    ${legendaHTML()}
+  </div>
+  <div class="grid g2">
+    <div class="card"><div class="card-h"><h2>Alertas de conformidade e operação</h2><span class="badge ${nErr ? "b-red" : A.length ? "b-amber" : "b-green"}">${A.length} alerta(s)</span></div>
+      <ul class="alerts">${A.length ? A.map(a => `<li class="al-${a.t}">${a.t === "err" ? "●" : a.t === "warn" ? "▲" : "i"} <span>${esc(a.x)}</span></li>`).join("") : `<li class="al-ok">✓ <span>Escala dentro das regras configuradas.</span></li>`}</ul>
+    </div>
+    <div class="card"><div class="card-h"><h2>Resumo do mês</h2><button class="btn-ghost btn-sm" onclick="ir('resumo')">Ver completo</button></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Colaborador</th><th class="num">Dias</th><th class="num">Horas</th><th class="num">Folgas</th><th class="num">Domingos</th><th class="num">A compensar</th></tr></thead><tbody>${resumo}</tbody></table></div>
+    </div>
+  </div>
+  <p class="help">O Eskla organiza a escala operacional; não substitui a validação jurídica e contábil nem a convenção coletiva (CCT/ACT) da categoria.</p>`;
+};
+
+/* ---- Feriados ---- */
+VIEWS.feriados = () => {
+  const ano = Number(E.competencia.slice(0, 4));
+  const lista = [...E.feriados].sort((a, b) => a.data.localeCompare(b.data));
+  const linhas = lista.map(f => {
+    let imp = `Folga para toda a equipe${E.regras.priorizarFeriadoFolga ? " (absorve uma folga da semana)" : " (descanso a mais na semana)"}`;
+    if (f.tratamento !== "FOLGA") {
+      const r = f.data.startsWith(E.competencia) ? calc : gerarEscala(E, f.data.slice(0, 7));
+      const quem = Object.keys(r.G).filter(cid => ST[r.G[cid][f.data]?.st]?.trab).map(nomeCol);
+      imp = (quem.length ? `Trabalha: ${quem.join(", ")}` : "Ninguém disponível") + (f.tratamento === "COMP" ? " → ganha folga compensatória" : " → recebe o dia em dobro");
+    }
+    return `<tr><td data-l="Data"><b>${br(f.data)}</b></td><td data-l="Dia">${DOW[parseISO(f.data).getDay()]}</td><td data-l="Feriado">${esc(f.descricao)}</td><td data-l="Abrangência">${esc(f.abrangencia)}</td>
+      <td data-l="Tratamento"><select onchange="upd(e=>e.feriados.find(x=>x.id==='${f.id}').tratamento=this.value,true)">${Object.entries(TRAT_FER).map(([k, v]) => opt(k, v, f.tratamento)).join("")}</select></td>
+      <td data-l="Impacto na escala"><span class="help" style="color:var(--ink-2)">${esc(imp)}</span></td><td><button class="btn-danger btn-sm" onclick="upd(e=>e.feriados=e.feriados.filter(x=>x.id!=='${f.id}'),true)">Excluir</button></td></tr>`;
+  }).join("") || `<tr><td colspan="7" class="empty">Nenhum feriado cadastrado. Use o botão para carregar os nacionais e acrescente os do seu estado e município.</td></tr>`;
+  return `<div class="card"><div class="card-h"><div><h2>Cadastrar feriado</h2><div class="sub">Defina se a loja fecha, ou se abre com revezamento e como o dia trabalhado é compensado.</div></div>
+      <button class="btn-ghost" onclick="addNacionais(${ano})">+ Feriados nacionais de ${ano}</button></div>
+    <div class="grid g4">
+      <div class="field"><label for="fData">Data</label><input type="date" id="fData"></div>
+      <div class="field"><label for="fDesc">Nome do feriado</label><input id="fDesc" placeholder="Ex.: Padroeira da cidade"></div>
+      <div class="field"><label for="fAbr">Abrangência</label><select id="fAbr">${["Nacional", "Estadual", "Municipal", "Convenção coletiva"].map(x => opt(x, x)).join("")}</select></div>
+      <div class="field"><label for="fTrat">Tratamento na escala</label><select id="fTrat">${Object.entries(TRAT_FER).map(([k, v]) => opt(k, v)).join("")}</select></div>
+    </div>
+    <div class="form-actions"><button class="btn-primary" onclick="addFeriado()">+ Adicionar feriado</button></div></div>
+  <div class="card"><div class="card-h"><h2>Feriados cadastrados</h2><span class="badge b-blue">${E.feriados.length}</span></div>
+    <div class="tbl-wrap"><table class="stack"><thead><tr><th>Data</th><th>Dia</th><th>Feriado</th><th>Abrangência</th><th>Tratamento</th><th>Impacto na escala</th><th></th></tr></thead><tbody>${linhas}</tbody></table></div>
+    <p class="help" style="margin-top:10px">Revezamento: o sistema escala primeiro o mínimo de feriado de cada função (Funções), depois completa o mínimo da linha “Feriado” (Funcionamento), em revezamento; os demais ficam de folga. Se o feriado cair num dia com folga bloqueada, o bloqueio não vale nesse dia. Para trabalho em feriado no comércio, confira a autorização na convenção coletiva.</p></div>`;
+};
+function addFeriado() {
+  const data = $("fData").value; if (!data) return toast("Informe a data do feriado.");
+  if (E.feriados.some(f => f.data === data)) return toast("Já existe um feriado nessa data.");
+  upd(e => e.feriados.push({ id: uid("fer"), data, descricao: $("fDesc").value.trim() || "Feriado", abrangencia: $("fAbr").value, tratamento: $("fTrat").value }), true);
+  toast("Feriado adicionado e escala recalculada.");
+}
+function addNacionais(ano) {
+  let n = 0;
+  feriadosNacionais(ano).forEach(([data, descricao]) => { if (!E.feriados.some(f => f.data === data)) { E.feriados.push({ id: uid("fer"), data, descricao, abrangencia: "Nacional", tratamento: "FOLGA" }); n++; } });
+  salvar(); render(); toast(n ? `${n} feriado(s) nacional(is) adicionado(s).` : "Os feriados nacionais já estavam cadastrados.");
+}
+
+/* ---- Trocas ---- */
+VIEWS.trocas = () => {
+  if (E.equipe.filter(c => c.status === "Ativo").length < 2) return vazioEquipe("Cadastre pelo menos duas pessoas ativas para registrar trocas.");
+  const linhas = [...E.trocas].sort((a, b) => a.data.localeCompare(b.data)).map(t => {
+    const r = t.data.startsWith(E.competencia) ? calc : gerarEscala(E, t.data.slice(0, 7));
+    const a = r.G[t.colA]?.[t.data], b = r.G[t.colB]?.[t.data];
+    const conf = [];
+    if (!a || !b) conf.push("Colaborador inativo ou removido");
+    if ([a?.st, b?.st].some(s => s === "FERIAS" || s === "AFAST")) conf.push("Envolve pessoa de férias/afastada");
+    const ca = colById(t.colA)?.carga, cb = colById(t.colB)?.carga;
+    if (ca && cb && ca !== cb) conf.push(`Jornadas diferentes (${ca}h × ${cb}h)`);
+    const imp = a && b ? `${nomeCol(t.colA)}: ${textoCel(a)} · ${nomeCol(t.colB)}: ${textoCel(b)}` : "—";
+    return `<tr><td data-l="Data"><b>${br(t.data)}</b></td><td data-l="Colaboradores">${esc(nomeCol(t.colA))} ⇄ ${esc(nomeCol(t.colB))}</td><td data-l="Motivo">${esc(t.motivo || "—")}</td>
+      <td data-l="Impacto na escala"><span class="help" style="color:var(--ink-2)">${esc(imp)}</span></td><td data-l="Situação">${conf.length ? `<span class="badge b-amber">${esc(conf.join(" · "))}</span>` : `<span class="badge b-green">OK</span>`}</td>
+      <td><button class="btn-danger btn-sm" onclick="upd(e=>e.trocas=e.trocas.filter(x=>x.id!=='${t.id}'),true)">Excluir</button></td></tr>`;
+  }).join("") || `<tr><td colspan="6" class="empty">Nenhuma troca registrada.</td></tr>`;
+  return `<div class="card"><div class="card-h"><div><h2>Registrar troca</h2><div class="sub">Os dois colaboradores trocam entre si o que estava previsto para o dia (turno ou folga).</div></div></div>
+    <div class="grid g4">
+      <div class="field"><label for="tData">Data</label><input type="date" id="tData"></div>
+      <div class="field"><label for="tA">Colaborador 1</label><select id="tA">${optsEquipe()}</select></div>
+      <div class="field"><label for="tB">Colaborador 2</label><select id="tB">${optsEquipe(E.equipe.filter(c => c.status === "Ativo")[1]?.id)}</select></div>
+      <div class="field"><label for="tMot">Motivo</label><input id="tMot" placeholder="Ex.: consulta médica"></div>
+    </div><div class="form-actions"><button class="btn-primary" onclick="addTroca()">+ Registrar troca</button></div></div>
+  <div class="card"><div class="card-h"><h2>Trocas registradas</h2><span class="badge b-blue">${E.trocas.length}</span></div>
+    <div class="tbl-wrap"><table class="stack"><thead><tr><th>Data</th><th>Colaboradores</th><th>Motivo</th><th>Impacto na escala</th><th>Situação</th><th></th></tr></thead><tbody>${linhas}</tbody></table></div></div>`;
+};
+function addTroca() {
+  const data = $("tData").value, a = $("tA").value, b = $("tB").value;
+  if (!data) return toast("Informe a data da troca.");
+  if (!a || !b || a === b) return toast("Escolha dois colaboradores diferentes.");
+  upd(e => e.trocas.push({ id: uid("tr"), data, colA: a, colB: b, motivo: $("tMot").value.trim() }), true);
+  toast("Troca registrada.");
+}
+
+/* ---- Férias e ausências ---- */
+VIEWS.ocorrencias = () => {
+  if (!E.equipe.length) return vazioEquipe();
+  const linhas = [...E.ocorrencias].sort((a, b) => a.inicio.localeCompare(b.inicio)).map(o => {
+    const n = Math.round((parseISO(o.fim) - parseISO(o.inicio)) / 864e5) + 1;
+    const imp = o.tipo === "FALTA" ? "Dia descontado; verificar perda do repouso da semana na folha" : `${n} dia(s) fora · folgas e domingos redistribuídos entre os demais`;
+    const b = o.tipo === "FERIAS" ? "b-blue" : o.tipo === "AFAST" ? "b-red" : "b-amber";
+    return `<tr><td data-l="Colaborador"><b>${esc(nomeCol(o.colId))}</b></td><td data-l="Tipo"><span class="badge ${b}">${TIPOS_OC[o.tipo]}</span></td><td data-l="Período">${br(o.inicio)}${o.fim !== o.inicio ? " a " + br(o.fim) : ""}</td><td data-l="Dias" class="num">${n}</td>
+      <td data-l="Motivo">${esc(o.motivo || "—")}</td><td data-l="Impacto"><span class="help" style="color:var(--ink-2)">${imp}</span></td><td><button class="btn-danger btn-sm" onclick="upd(e=>e.ocorrencias=e.ocorrencias.filter(x=>x.id!=='${o.id}'),true)">Excluir</button></td></tr>`;
+  }).join("") || `<tr><td colspan="7" class="empty">Nenhuma ocorrência lançada.</td></tr>`;
+  return `<div class="card"><div class="card-h"><div><h2>Lançar férias ou ausência</h2><div class="sub">Ao lançar férias ou afastamento, o sistema tira a pessoa da escala e reorganiza folgas e domingos dos demais.</div></div></div>
+    <div class="grid g4">
+      <div class="field"><label for="oCol">Colaborador</label><select id="oCol">${optsEquipe(null, false)}</select></div>
+      <div class="field"><label for="oTipo">Tipo</label><select id="oTipo">${Object.entries(TIPOS_OC).map(([k, v]) => opt(k, v)).join("")}</select></div>
+      <div class="field"><label for="oIni">Início</label><input type="date" id="oIni"></div>
+      <div class="field"><label for="oFim">Fim</label><input type="date" id="oFim"><span class="help">Em branco = um dia só.</span></div>
+      <div class="field span-2"><label for="oMot">Motivo / observação</label><input id="oMot" placeholder="Ex.: férias do período 2025/2026, atestado de 3 dias…"></div>
+    </div><div class="form-actions"><button class="btn-primary" onclick="addOcorrencia()">+ Lançar</button></div></div>
+  <div class="card"><div class="card-h"><h2>Ocorrências lançadas</h2><span class="badge b-blue">${E.ocorrencias.length}</span></div>
+    <div class="tbl-wrap"><table class="stack"><thead><tr><th>Colaborador</th><th>Tipo</th><th>Período</th><th class="num">Dias</th><th>Motivo</th><th>Impacto na escala</th><th></th></tr></thead><tbody>${linhas}</tbody></table></div></div>`;
+};
+function addOcorrencia() {
+  const colId = $("oCol").value, inicio = $("oIni").value, fim = $("oFim").value || inicio;
+  if (!colId || !inicio) return toast("Escolha o colaborador e a data de início.");
+  if (fim < inicio) return toast("A data final não pode ser antes da inicial.");
+  upd(e => e.ocorrencias.push({ id: uid("oc"), colId, tipo: $("oTipo").value, inicio, fim, motivo: $("oMot").value.trim() }), true);
+  toast("Lançado. A escala foi redistribuída.");
+}
+
+/* ---- Compensações ---- */
+VIEWS.compensacoes = () => {
+  if (!E.equipe.length) return vazioEquipe();
+  const L = razao();
+  const cards = E.equipe.map(c => { const s = saldoCol(c.id); return `<div class="saldo ${s.saldo > 0 ? "pos" : s.saldo < 0 ? "neg" : "zero"}"><div class="nome">${esc(c.nome)}</div><div class="n">${s.saldo}</div><div class="help">${s.ganho} ganha(s) · ${s.usado} usada(s)</div></div>`; }).join("");
+  const linhas = [...L].reverse().map(l => `<tr><td data-l="Data">${br(l.data)}</td><td data-l="Colaborador"><b>${esc(nomeCol(l.colId))}</b></td>
+    <td data-l="Movimento"><span class="badge ${l.qtd > 0 ? "b-teal" : "b-amber"}">${l.qtd > 0 ? "+1 crédito" : "−1 usado"}</span></td><td data-l="Descrição">${esc(l.desc)}</td><td data-l="Origem"><span class="help">${l.origem}</span></td>
+    <td>${l.id ? `<button class="btn-danger btn-sm" onclick="upd(e=>e.compensacoes=e.compensacoes.filter(x=>x.id!=='${l.id}'),true)">Excluir</button>` : ""}</td></tr>`).join("") || `<tr><td colspan="6" class="empty">Nenhum movimento. Créditos aparecem quando alguém trabalha num feriado marcado como “Revezamento + folga compensatória”.</td></tr>`;
+  return `<div class="card"><div class="card-h"><div><h2>Saldo de folgas por colaborador</h2><div class="sub">Crédito automático para cada feriado trabalhado com compensação; cada folga ou pagamento lançado desconta 1.</div></div></div><div class="saldo-cards">${cards}</div></div>
+  <div class="card"><div class="card-h"><div><h2>Lançar compensação</h2><div class="sub">A folga compensatória entra na escala no dia escolhido e aparece no resumo mensal.</div></div></div>
+    <div class="grid g4">
+      <div class="field"><label for="cCol">Colaborador</label><select id="cCol">${optsEquipe()}</select></div>
+      <div class="field"><label for="cTipo">Como compensar</label><select id="cTipo" onchange="$('cDataLbl').textContent=this.value==='FOLGA'?'Dia da folga':'Data do lançamento'">${opt("FOLGA", "Dar folga compensatória")}${opt("PAGAMENTO", "Pagar em folha")}${opt("CREDITO", "Lançar crédito manual")}</select></div>
+      <div class="field"><label for="cData" id="cDataLbl">Dia da folga</label><input type="date" id="cData"></div>
+      <div class="field"><label for="cMot">Motivo / referência</label><input id="cMot" placeholder="Ex.: ref. feriado de 15/11"></div>
+    </div><div class="form-actions"><button class="btn-primary" onclick="addComp()">+ Lançar</button></div></div>
+  <div class="card"><div class="card-h"><h2>Extrato de compensações</h2><span class="badge b-blue">${L.length} movimento(s)</span></div>
+    <div class="tbl-wrap"><table class="stack"><thead><tr><th>Data</th><th>Colaborador</th><th>Movimento</th><th>Descrição</th><th>Origem</th><th></th></tr></thead><tbody>${linhas}</tbody></table></div></div>`;
+};
+function addComp() {
+  const colId = $("cCol").value, tipo = $("cTipo").value, data = $("cData").value;
+  if (!colId || !data) return toast("Escolha o colaborador e a data.");
+  if (tipo !== "CREDITO" && saldoCol(colId).saldo <= 0 && !confirm("Este colaborador não tem saldo de folga. Lançar mesmo assim?")) return;
+  upd(e => e.compensacoes.push({ id: uid("cp"), colId, tipo, data, motivo: $("cMot").value.trim() }), true);
+  toast(tipo === "FOLGA" ? "Folga compensatória lançada na escala." : "Compensação registrada.");
+}
+
+/* ---- Aviso semanal ---- */
+VIEWS.aviso = () => {
+  if (!calc.equipe.length) return vazioEquipe();
+  const sems = semanasDoMes(); if (ui.semana >= sems.length) ui.semana = 0;
+  const s = sems[ui.semana];
+  const head = `<tr><th>Colaborador</th>${s.dias.map(d => `<th style="text-align:center">${DOW[d.dow]}<br><b style="color:var(--ink)">${brC(d.iso)}</b>${d.fer ? `<br><small style="color:var(--blue-tx)">${esc(d.fer.descricao)}</small>` : ""}</th>`).join("")}</tr>`;
+  const body = calc.equipe.map(c => `<tr><td><div class="nome">${esc(c.nome)}</div><div class="meta">${esc(funcNome(c))}</div></td>${s.dias.map(d => { const cel = calc.G[c.id][d.iso]; return `<td style="text-align:center"><span class="badge ${ST[cel.st].cls}" style="border-radius:7px;padding:6px 8px">${esc(ST[cel.st].trab ? cel.horario : ST[cel.st].label)}</span></td>`; }).join("")}</tr>`).join("");
+  return `<div class="card no-print"><div class="card-h" style="border:0;margin:0;padding:0"><div class="acts"><label for="semSel" style="margin:0">Semana</label>
+      <select id="semSel" style="width:auto" onchange="ui.semana=Number(this.value);render()">${sems.map(x => opt(x.i, x.label, ui.semana)).join("")}</select></div>
+      <div class="acts"><button class="btn-ghost" onclick="ir('whatsapp')">Mensagens WhatsApp</button><button class="btn-primary" onclick="imprimir('folhaAviso')" title="Na janela de impressão, escolha “Salvar como PDF”">Exportar PDF</button></div></div></div>
+  <div class="card" id="folhaAviso">${cabecalhoFolha("Escala da semana", s.label.replace(/^Semana \d+ · /, "Período: "))}
+    <div class="tbl-wrap"><table><thead>${head}</thead><tbody>${body}</tbody></table></div>${legendaHTML()}${rodapeFolha()}</div>`;
+};
+
+/* ---- Espelho mensal ---- */
+VIEWS.espelho = () => {
+  if (!E.equipe.length) return vazioEquipe();
+  if (!colById(ui.col)) ui.col = E.equipe[0].id;
+  const c = colById(ui.col), ativo = !!calc.G[c.id];
+  const r = ativo ? resumoCol(c) : null;
+  const linhas = ativo ? calc.diasMes.map(d => {
+    const cel = calc.G[c.id][d.iso];
+    const obs = [d.fer && `Feriado: ${d.fer.descricao}`, cel.troca && "Troca", cel.manual && "Ajuste manual", cel.extra && "Folga extra (limite de dias seguidos)", cel.st === "FALTA" && "Verificar desconto de repouso"].filter(Boolean).join(" · ");
+    return `<tr><td><b>${pad(d.dia)}</b></td><td>${DOW[d.dow]}</td><td><span class="badge ${ST[cel.st].cls}">${ST[cel.st].label}</span></td><td>${ST[cel.st].trab ? esc(cel.horario) : "—"}</td><td class="num">${ST[cel.st].trab ? fmtH(cel.horas) : "—"}</td><td>${esc(obs || "")}</td></tr>`;
+  }).join("") : `<tr><td colspan="6" class="empty">Colaborador inativo neste mês.</td></tr>`;
+  return `<div class="card no-print"><div class="card-h" style="border:0;margin:0;padding:0"><div class="acts"><label for="colSel" style="margin:0">Colaborador</label>
+      <select id="colSel" style="width:auto" onchange="ui.col=this.value;render()">${E.equipe.map(x => opt(x.id, x.nome, ui.col)).join("")}</select></div>
+      <button class="btn-primary" onclick="imprimir('folhaEsp','portrait')">Imprimir / PDF</button></div></div>
+  <div class="card" id="folhaEsp">${cabecalhoFolha("Espelho mensal de escala", `Competência: ${MESES[calc.mes - 1]} de ${calc.ano}`)}
+    <div class="sheet-meta"><div><small>Colaborador</small>${esc(c.nome)}</div><div><small>Função</small>${esc(funcNome(c))}</div><div><small>Carga semanal</small>${c.carga}h (${fmtH(horasDiaCol(c))}/dia)</div>
+      ${r ? `<div><small>Dias trabalhados</small>${r.trab}</div><div><small>Horas previstas</small>${fmtH(r.horas)}</div><div><small>Folgas e feriados</small>${r.folgas + r.ferFolga + r.comp}</div>` : ""}</div>
+    <div class="tbl-wrap"><table><thead><tr><th>Dia</th><th>Sem.</th><th>Situação</th><th>Horário</th><th class="num">Horas</th><th>Observações</th></tr></thead><tbody>${linhas}</tbody></table></div>
+    <div class="sign"><div><b>${esc(E.empresa.razao || nomeEmp())}</b><br>Responsável pela empresa</div><div><b>${esc(c.nome)}</b><br>Colaborador(a) — data: ____/____/______</div></div>${rodapeFolha()}</div>`;
+};
+
+/* ---- Resumo de horas e folgas ---- */
+VIEWS.resumo = () => {
+  if (!calc.equipe.length) return vazioEquipe();
+  const R = calc.equipe.map(c => ({ c, r: resumoCol(c), s: saldoCol(c.id).saldo }));
+  const maxH = Math.max(1, ...R.map(x => x.r.horas));
+  const semanasMes = calc.diasMes.length / 7;
+  const horas = R.map(({ c, r }) => { const meta = c.carga * semanasMes; return `<tr><td data-l="Colaborador"><b>${esc(c.nome)}</b><div class="meta">${c.carga}h/sem</div></td><td data-l="Dias" class="num">${r.trab}</td><td data-l="Horas" class="num"><b>${fmtH(r.horas)}</b></td>
+    <td data-l="Referência" class="num">${fmtH(Math.round(meta))}</td><td data-l="Distribuição" style="width:30%"><div class="bar"><i style="width:${Math.round(r.horas / maxH * 100)}%"></i></div></td><td data-l="Domingos" class="num">${r.domingos}</td><td data-l="Feriados trab." class="num">${r.ferTrab + r.ferPago}</td></tr>`; }).join("");
+  const folgas = R.map(({ c, r, s }) => `<tr><td data-l="Colaborador"><b>${esc(c.nome)}</b></td><td data-l="Folgas semanais" class="num">${r.folgas}</td><td data-l="Feriados de folga" class="num">${r.ferFolga}</td><td data-l="Compensatórias" class="num">${r.comp}</td>
+    <td data-l="Férias" class="num">${r.ferias}</td><td data-l="Afastamentos" class="num">${r.afast}</td><td data-l="Faltas" class="num">${r.faltas}</td><td data-l="Saldo a compensar" class="num">${s}</td></tr>`).join("");
+  return `<div class="card" id="folhaResumo">${cabecalhoFolha("Resumo mensal de horas e folgas", `Competência: ${MESES[calc.mes - 1]} de ${calc.ano}`)}
+    <div class="card-h no-print" style="border:0;padding:0;margin:0 0 10px"><span class="help">Referência = carga semanal × semanas do mês (${semanasMes.toFixed(1)}). É uma estimativa para conferência, não cálculo de folha.</span><button class="btn-primary" onclick="imprimir('folhaResumo')">Imprimir / PDF</button></div>
+    <h2 style="font-size:15px;margin:6px 0 10px">Horas trabalhadas</h2>
+    <div class="tbl-wrap"><table class="stack"><thead><tr><th>Colaborador</th><th class="num">Dias</th><th class="num">Horas previstas</th><th class="num">Referência</th><th>Distribuição</th><th class="num">Domingos</th><th class="num">Feriados trab.</th></tr></thead><tbody>${horas}</tbody></table></div>
+    <h2 style="font-size:15px;margin:20px 0 10px">Folgas e ausências (dias)</h2>
+    <div class="tbl-wrap"><table class="stack"><thead><tr><th>Colaborador</th><th class="num">Folgas semanais</th><th class="num">Feriados de folga</th><th class="num">Compensatórias</th><th class="num">Férias</th><th class="num">Afastamentos</th><th class="num">Faltas</th><th class="num">Saldo a compensar</th></tr></thead><tbody>${folgas}</tbody></table></div>${rodapeFolha()}</div>`;
+};
+
+/* ---- WhatsApp ---- */
+function msgCol(c, s) {
+  const l = [`Olá, *${c.nome}*! Sua escala na *${nomeEmp()}* — ${s.label.replace(/^Semana \d+ · /, "")}:`, ""];
+  s.dias.forEach(d => { const cel = calc.G[c.id][d.iso]; l.push(`• ${DOW[d.dow]} ${brC(d.iso)}: ${ST[cel.st].trab ? `${cel.horario} (${fmtH(cel.horas)})` : ST[cel.st].label}${d.fer ? ` — ${d.fer.descricao}` : ""}`); });
+  l.push("", "Qualquer dúvida ou troca, avise com antecedência. Bom trabalho!");
+  return l.join("\n");
+}
+VIEWS.whatsapp = () => {
+  if (!calc.equipe.length) return vazioEquipe();
+  const sems = semanasDoMes(); if (ui.semana >= sems.length) ui.semana = 0;
+  const s = sems[ui.semana];
+  const geral = [`*${nomeEmp().toUpperCase()} — ESCALA DA SEMANA*`, s.label.replace(/^Semana \d+ · /, "Período: "), ""];
+  s.dias.forEach(d => {
+    const trab = calc.equipe.filter(c => ST[calc.G[c.id][d.iso].st].trab).map(c => `${c.nome} (${calc.G[c.id][d.iso].horario})`);
+    geral.push(`*${DOW[d.dow]} ${brC(d.iso)}*${d.fer ? ` — ${d.fer.descricao}` : ""}: ${trab.length ? trab.join(", ") : "loja fechada / sem escala"}`);
+  });
+  geral.push("", "_Qualquer troca, combinar com antecedência._");
+  const cards = calc.equipe.map(c => {
+    const m = msgCol(c, s), tel = String(c.telefone || "").replace(/\D/g, "");
+    const link = `https://wa.me/${tel ? (tel.length <= 11 ? "55" + tel : tel) : ""}?text=${encodeURIComponent(m)}`;
+    return `<div class="wa-card"><div class="wa-h"><b>${esc(c.nome)}</b><div class="acts" style="display:flex;gap:6px"><button class="btn-ghost btn-sm" onclick="copiar('wa_${c.id}')">Copiar</button><a class="btn-wa" href="${esc(link)}" target="_blank" rel="noopener">Abrir no WhatsApp</a></div></div><textarea id="wa_${c.id}" readonly>${esc(m)}</textarea>${tel ? "" : `<span class="help">Sem telefone cadastrado: o WhatsApp abre para você escolher o contato.</span>`}</div>`;
+  }).join("");
+  return `<div class="card"><div class="acts" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><label for="semSel2" style="margin:0">Semana</label><select id="semSel2" style="width:auto" onchange="ui.semana=Number(this.value);render()">${sems.map(x => opt(x.i, x.label, ui.semana)).join("")}</select></div></div>
+  <div class="grid g2"><div class="card"><div class="card-h"><h2>Mensagem para o grupo</h2><div class="acts"><button class="btn-ghost btn-sm" onclick="copiar('waGeral')">Copiar</button><a class="btn-wa" href="https://wa.me/?text=${encodeURIComponent(geral.join("\n"))}" target="_blank" rel="noopener">Abrir no WhatsApp</a></div></div><textarea id="waGeral" readonly style="min-height:360px">${esc(geral.join("\n"))}</textarea></div>
+  <div class="card"><div class="card-h"><h2>Mensagens individuais</h2></div><div class="grid">${cards}</div></div></div>`;
+};
+function copiar(id) {
+  const el = $(id); el.select();
+  (navigator.clipboard ? navigator.clipboard.writeText(el.value) : Promise.reject()).then(() => toast("Mensagem copiada!")).catch(() => { document.execCommand("copy"); toast("Mensagem copiada!"); });
+}
+
+/* ---- Empresa ---- */
+VIEWS.empresa = () => {
+  const e = E.empresa;
+  const f = (k, l, ph = "", extra = "", cls = "") => `<div class="field ${cls}"><label for="e_${k}">${l}</label><input id="e_${k}" value="${esc(e[k])}" placeholder="${esc(ph)}" ${extra} onchange="upd(x=>x.empresa.${k}=this.value.trim())"></div>`;
+  const cnpjOk = !e.cnpj || cnpjValido(e.cnpj);
+  return `<div class="card"><div class="card-h"><div><h2>Identificação</h2><div class="sub">Aparece nos relatórios, no espelho mensal e no aviso semanal.</div></div></div>
+    <div class="grid g3">
+      ${f("razao", "Razão social", "Como está no CNPJ", "", "span-2")}
+      ${f("fantasia", "Nome fantasia", "Nome da loja")}
+      <div class="field"><label for="e_cnpj">CNPJ</label><input id="e_cnpj" value="${esc(e.cnpj)}" placeholder="00.000.000/0000-00" inputmode="numeric" class="${cnpjOk ? "" : "invalid"}" oninput="this.value=mascCNPJ(this.value)" onchange="validarCNPJ(this)"><span class="help" id="cnpjMsg" style="${cnpjOk ? "" : "color:var(--red-tx)"}">${cnpjOk ? "Os dígitos verificadores são conferidos." : "CNPJ inválido — confira os números."}</span></div>
+      <div class="field"><label for="e_ramo">Ramo de atividade</label><select id="e_ramo" onchange="upd(x=>x.empresa.ramo=this.value)">${opt("", "Selecione…", e.ramo)}${RAMOS.map(r => opt(r, r, e.ramo)).join("")}</select></div>
+      <div class="field"><label for="e_telefone">Telefone</label><input id="e_telefone" value="${esc(e.telefone)}" placeholder="(00) 00000-0000" inputmode="tel" oninput="this.value=mascTel(this.value)" onchange="upd(x=>x.empresa.telefone=this.value)"></div>
+    </div></div>
+  <div class="card"><div class="card-h"><h2>Endereço</h2></div>
+    <div class="grid g4">
+      <div class="field"><label for="e_cep">CEP</label><input id="e_cep" value="${esc(e.cep)}" placeholder="00000-000" inputmode="numeric" oninput="this.value=mascCEP(this.value)" onchange="upd(x=>x.empresa.cep=this.value)"></div>
+      ${f("logradouro", "Logradouro", "Rua, avenida…", "", "span-2")}
+      ${f("numero", "Número", "Ex.: 120 ou S/N")}
+      ${f("complemento", "Complemento", "Sala, loja, bloco…")}
+      ${f("bairro", "Bairro")}
+      ${f("cidade", "Cidade")}
+      <div class="field"><label for="e_uf">UF</label><select id="e_uf" onchange="upd(x=>x.empresa.uf=this.value)">${opt("", "—", e.uf)}${"AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO".split(" ").map(u => opt(u, u, e.uf)).join("")}</select></div>
+    </div></div>
+  <div class="card"><div class="card-h"><div><h2>Marca</h2><div class="sub">Foto de perfil e cor principal usadas na lateral, nos botões e nos relatórios.</div></div></div>
+    <div class="grid g2">
+      <div class="logo-up"><div class="logo">${logoHTML()}</div><div style="display:grid;gap:8px"><div class="lbl-f">Foto de perfil / logotipo</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-ghost" onclick="$('fileLogo').click()">Enviar imagem</button>${e.logo ? `<button class="btn-danger" onclick="upd(x=>x.empresa.logo='',true)">Remover</button>` : ""}</div><span class="help">PNG ou JPG, quadrada de preferência. É reduzida automaticamente.</span></div></div>
+      <div class="field"><div class="lbl-f">Cor principal</div><div class="swatches">${CORES.map(c => `<button class="${c.toLowerCase() === (e.cor || "").toLowerCase() ? "sel" : ""}" style="background:${c}" title="${c}" onclick="upd(x=>x.empresa.cor='${c}',true)"></button>`).join("")}<input type="color" value="${esc(e.cor)}" onchange="upd(x=>x.empresa.cor=this.value,true)" title="Outra cor"></div></div>
+    </div></div>
+  <div class="card"><div class="card-h"><div><h2>Dados e backup</h2><div class="sub">Cada empresa tem configuração, equipe e lançamentos próprios. Os dados ficam salvos neste navegador.</div></div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn-ghost" onclick="exportarJSON()">Exportar backup desta empresa</button>
+      <button class="btn-ghost" onclick="$('fileImport').click()">Importar backup (como nova empresa)</button>
+      <button class="btn-ghost" onclick="criarEmpresa()">+ Nova empresa</button>
+      <button class="btn-danger" onclick="excluirEmpresa()">Excluir esta empresa</button>
+    </div></div>`;
+};
+const mascCNPJ = v => v.replace(/\D/g, "").slice(0, 14).replace(/^(\d{2})(\d)/, "$1.$2").replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d)/, ".$1/$2").replace(/(\d{4})(\d)/, "$1-$2");
+const mascCEP = v => v.replace(/\D/g, "").slice(0, 8).replace(/^(\d{5})(\d)/, "$1-$2");
+const mascTel = v => { const n = v.replace(/\D/g, "").slice(0, 11); return n.length > 10 ? n.replace(/^(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3") : n.replace(/^(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3").replace(/^(\d{2})(\d{0,4})$/, "($1) $2"); };
+function cnpjValido(v) {
+  const n = String(v).replace(/\D/g, "");
+  if (n.length !== 14 || /^(\d)\1+$/.test(n)) return false;
+  const dig = l => { let s = 0, p = l - 7; for (let i = 0; i < l; i++) { s += Number(n[i]) * p--; if (p < 2) p = 9; } const r = s % 11; return r < 2 ? 0 : 11 - r; };
+  return dig(12) === Number(n[12]) && dig(13) === Number(n[13]);
+}
+function validarCNPJ(el) {
+  const ok = !el.value || cnpjValido(el.value);
+  el.classList.toggle("invalid", !ok);
+  $("cnpjMsg").textContent = ok ? "Os dígitos verificadores são conferidos." : "CNPJ inválido — confira os números.";
+  $("cnpjMsg").style.color = ok ? "" : "var(--red-tx)";
+  upd(x => x.empresa.cnpj = el.value);
+}
+function carregarLogo(ev) {
+  const file = ev.target.files?.[0]; if (!file) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const s = 256, cv = document.createElement("canvas"), k = Math.min(1, s / Math.max(img.width, img.height));
+      cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
+      cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+      upd(x => x.empresa.logo = cv.toDataURL("image/png"), true); toast("Imagem atualizada.");
+    };
+    img.src = rd.result;
+  };
+  rd.readAsDataURL(file); ev.target.value = "";
+}
+
+/* ---- Funcionamento e jornada ---- */
+VIEWS.funcionamento = () => {
+  const R = E.regras;
+  const linhas = DIAS_CFG.map(d => {
+    const h = E.horarios[d.id], ab = toMin(h.abertura), fe = toMin(h.fechamento);
+    const isFer = d.id === "feriado";
+    const dis = !isFer && !h.aberto ? "disabled" : "";
+    const tm = (k, l) => `<td data-l="${l}"><input type="time" value="${esc(h[k])}" ${dis} onchange="upd(e=>e.horarios.${d.id}.${k}=this.value,true)"></td>`;
+    const situ = isFer ? `<span class="badge b-blue">Conforme cada feriado</span>` : `<button class="toggle ${h.aberto ? "on" : "off"}" onclick="upd(e=>e.horarios.${d.id}.aberto=!e.horarios.${d.id}.aberto,true)"><span class="knob"></span>${h.aberto ? "Aberto" : "Fechado"}</button>`;
+    const tot = ab != null && fe != null && fe > ab && (isFer || h.aberto) ? fmtH((fe - ab) / 60) : "—";
+    const minimo = `<td data-l="${isFer ? "Mínimo no feriado" : "Mínimo de pessoas"}"><input type="number" min="0" max="50" value="${Number(h.minimo) || 0}" ${dis} style="width:72px" onchange="upd(e=>e.horarios.${d.id}.minimo=Math.max(0,Number(this.value)||0),true)"></td>`;
+    const folga = isFer ? `<td data-l="Folgas neste dia"><span class="badge b-green">Sempre permitidas</span></td>`
+      : `<td data-l="Folgas neste dia"><button class="toggle ${h.bloqueiaFolga ? "off" : "on"}" ${dis} onclick="upd(e=>e.horarios.${d.id}.bloqueiaFolga=!e.horarios.${d.id}.bloqueiaFolga,true)" title="${h.bloqueiaFolga ? "Ninguém recebe folga semanal neste dia (exceto se for feriado)" : "O sistema pode dar folga semanal neste dia"}"><span class="knob"></span>${h.bloqueiaFolga ? "Bloqueadas" : "Permitidas"}</button></td>`;
+    return `<tr><td data-l="Dia"><b>${d.label}</b></td><td data-l="Situação">${situ}</td>${tm("abertura", "Abertura")}${tm("almocoSaida", "Saída p/ almoço")}${tm("almocoRetorno", "Retorno do almoço")}${tm("fechamento", "Fechamento")}<td data-l="Loja aberta" class="num">${tot}</td>${minimo}${folga}</tr>`;
+  }).join("");
+  const n = (k, l, help, attrs) => `<div class="field"><label for="r_${k}">${l}</label><input type="number" id="r_${k}" value="${esc(R[k])}" ${attrs} onchange="upd(e=>e.regras.${k}=Number(this.value),true)"><span class="help">${help}</span></div>`;
+  return `<div class="card"><div class="card-h"><div><h2>Horário de funcionamento</h2><div class="sub">Verde = aberto/permitido, vermelho = fechado/bloqueado. “Mínimo de pessoas” é o total para a loja funcionar naquele dia; a linha Feriado vale para todo feriado com revezamento (os horários dela são os do feriado trabalhado).</div></div><button class="btn-ghost" onclick="copiarSegunda()">Copiar segunda para terça a sábado</button></div>
+    <div class="tbl-wrap"><table class="stack"><thead><tr><th>Dia</th><th>Situação</th><th>Abertura</th><th>Saída p/ almoço</th><th>Retorno do almoço</th><th>Fechamento</th><th class="num">Loja aberta</th><th>Mínimo de pessoas</th><th>Folgas neste dia</th></tr></thead><tbody>${linhas}</tbody></table></div>
+    <p class="help" style="margin-top:10px">A pausa de almoço vale para jornadas acima de 6h (CLT: de 1h a 2h). Sem pausa informada, o sistema considera 1h. Dentro de cada função, metade abre e metade fecha. Folga bloqueada (ex.: terça da limpeza) é liberada automaticamente se o dia cair em feriado. Mínimos por função ficam em <a href="#" onclick="ir('funcoes');return false">Funções</a>.</p></div>
+  <div class="card"><div class="card-h"><div><h2>Regras de jornada</h2><div class="sub">Valores padrão da loja. A carga de cada pessoa é definida em Equipe.</div></div></div>
+    <div class="grid g3">
+      <div class="field"><label for="r_jornada">Jornada padrão da loja (horas por semana)</label><select id="r_jornada" onchange="upd(e=>{e.regras.jornada=Number(this.value);e.regras.divisor=Number(this.value)*5},true)">${opt(42, "42h — transição EC 141 (5 × 8h24)", R.jornada)}${opt(40, "40h — teto definitivo (5 × 8h)", R.jornada)}${opt(36, "36h — jornada reduzida", R.jornada)}${opt(30, "30h — meio período estendido", R.jornada)}</select><span class="help">Novos colaboradores entram com esta carga.</span></div>
+      <div class="field"><label for="r_folgas">Folgas por semana (repouso semanal remunerado)</label><select id="r_folgas" onchange="upd(e=>e.regras.folgasSemana=Number(this.value),true)">${opt(2, "2 folgas — escala 5x2 (EC 141)", R.folgasSemana)}${opt(1, "1 folga — regra anterior / CCT específica", R.folgasSemana)}</select></div>
+      ${n("maxDias", "Máximo de dias seguidos de trabalho", "Acima disso o sistema dá uma folga extra automaticamente.", 'min="1" max="6"')}
+      ${n("descanso", "Descanso interjornada (horas)", "Tempo mínimo entre o fim de um expediente e o início do próximo. CLT: 11h.", 'min="8" max="24" step="0.5"')}
+      ${n("divisor", "Divisor de horas do mês", "Base do valor da hora na folha (salário ÷ divisor). 42h → 210 · 40h → 200.", 'min="100" max="240"')}
+      <div class="field"><label class="check" style="font-weight:500;padding-top:6px"><input type="checkbox" ${R.priorizarFeriadoFolga ? "checked" : ""} onchange="upd(e=>e.regras.priorizarFeriadoFolga=this.checked,true)"> <span>Priorizar feriados na distribuição das folgas semanais<br><span class="help">Marcado: quem não trabalha no feriado tem uma das folgas da semana absorvida nele. Desmarcado: o feriado de folga é um descanso a mais e as folgas semanais continuam completas.</span></span></label></div>
+    </div></div>
+  <div class="card"><div class="card-h"><div><h2>Revezamento de domingos e feriados</h2><div class="sub">Quantas pessoas trabalham é definido pelos mínimos do domingo e do feriado (tabela acima e Funções). Quem participa do domingo é marcado em Equipe; o sistema alterna as pessoas mês a mês, pulando quem estiver de férias ou afastado.</div></div></div>
+    <div class="grid g3">
+      <div class="field"><label for="r_ini">Início do revezamento</label><input type="date" id="r_ini" value="${esc(R.inicioRevezamento)}" onchange="upd(e=>e.regras.inicioRevezamento=this.value,true)"><span class="help">Domingo em que o 1º da lista de Equipe trabalha. Mude para girar o revezamento.</span></div>
+    </div></div>
+  <div class="card"><div class="card-h"><h2>Referência legal — EC 141/2026</h2></div>
+    <div class="grid g4">
+      <div class="saldo"><div class="help">Escala</div><b>5x2</b><div class="help">Fim da 6x1: 2 repousos semanais remunerados.</div></div>
+      <div class="saldo"><div class="help">Fase 1 · 60 dias da promulgação</div><b>até 42h/semana</b><div class="help">Sem redução salarial.</div></div>
+      <div class="saldo"><div class="help">Fase 2 · 14 meses da promulgação</div><b>até 40h/semana</b><div class="help">Teto definitivo.</div></div>
+      <div class="saldo"><div class="help">CLT</div><b>11h interjornada</b><div class="help">Intervalo de 1h–2h acima de 6h; 15 min entre 4h e 6h.</div></div>
+    </div></div>`;
+};
+function copiarSegunda() {
+  const s = E.horarios.segunda;
+  const { aberto, abertura, almocoSaida, almocoRetorno, fechamento, minimo } = s;
+  upd(e => ["terca", "quarta", "quinta", "sexta", "sabado"].forEach(k => e.horarios[k] = { ...e.horarios[k], aberto, abertura, almocoSaida, almocoRetorno, fechamento, minimo }), true);
+  toast("Horário de segunda copiado para terça a sábado.");
+}
+
+/* ---- Funções ---- */
+VIEWS.funcoes = () => {
+  const usados = id => E.equipe.filter(c => c.funcaoId === id && c.status === "Ativo").length;
+  const linhas = E.funcoes.map((f, i) => {
+    const chips = f.turnos.map((t, j) => `<span class="turno-chip">${esc(t.ini)}–${esc(t.fim)}<button title="Remover janela" onclick="upd(e=>e.funcoes[${i}].turnos.splice(${j},1),true)">×</button></span>`).join("");
+    const n = usados(f.id), maior = Math.max(f.minUtil, f.minFeriado);
+    return `<tr><td data-l="Função"><input value="${esc(f.nome)}" onchange="upd(e=>e.funcoes[${i}].nome=this.value.trim()||'Sem nome',true)"></td>
+      <td data-l="Setor"><input value="${esc(f.setor)}" placeholder="Ex.: Loja, Padaria" onchange="upd(e=>e.funcoes[${i}].setor=this.value.trim())"></td>
+      <td data-l="Turnos / janelas"><div class="turnos">${chips || `<span class="help">Horário da loja</span>`}
+        <span class="turno-add"><input type="time" id="tIni${i}" aria-label="Início"><input type="time" id="tFim${i}" aria-label="Fim"><button class="btn-ghost btn-sm" onclick="addJanela(${i})">+</button></span></div></td>
+      <td data-l="Mín. dia útil"><input type="number" min="0" max="50" value="${f.minUtil}" style="width:70px" onchange="upd(e=>e.funcoes[${i}].minUtil=Math.max(0,Number(this.value)||0),true)"></td>
+      <td data-l="Mín. feriado"><input type="number" min="0" max="50" value="${f.minFeriado}" style="width:70px" onchange="upd(e=>e.funcoes[${i}].minFeriado=Math.max(0,Number(this.value)||0),true)"></td>
+      <td data-l="Pessoas ativas" class="num">${n}${maior > n ? ` <span class="badge b-red" title="Menos pessoas que o mínimo: não há como cobrir todos os dias com 2 folgas por semana">poucas</span>` : ""}</td>
+      <td><button class="btn-danger btn-sm" onclick="removerFuncao(${i})">Excluir</button></td></tr>`;
+  }).join("") || `<tr><td colspan="7" class="empty">Nenhuma função cadastrada. Sem funções, a escala usa só o mínimo geral de cada dia.</td></tr>`;
+  return `<div class="card"><div class="card-h"><div><h2>Funções</h2><div class="sub">O motor escala primeiro o mínimo de cada função, depois completa o mínimo geral do dia e só então distribui as folgas.</div></div>
+      <button class="btn-primary" onclick="addFuncao()">+ Nova função</button></div>
+    <div class="tbl-wrap"><table class="stack"><thead><tr><th>Função</th><th>Setor</th><th>Turnos / janelas de disponibilidade</th><th>Mín. dia útil</th><th>Mín. feriado</th><th class="num">Pessoas ativas</th><th></th></tr></thead><tbody>${linhas}</tbody></table></div>
+    <div class="help" style="margin-top:10px;display:grid;gap:4px">
+      <span><b>Janelas</b> são faixas em que a função pode trabalhar (ex.: 04:00–10:00 e 13:00–18:00), não um horário fixo: o sistema encaixa a carga diária de cada pessoa nelas e usa o espaço entre duas janelas como intervalo. Sem janela, vale o horário da loja.</span>
+      <span><b>Mín. dia útil</b> vale para todos os dias abertos (inclusive sábado e domingo); <b>Mín. feriado</b> vale nos feriados com revezamento.</span>
+      <span>Quando faltar gente, o sistema não tira folga nem aumenta carga: mostra o alerta em destaque no Painel.</span>
+    </div></div>`;
+};
+function addFuncao() {
+  upd(e => e.funcoes.push(novaFuncao(`Função ${e.funcoes.length + 1}`)), true);
+  setTimeout(() => { const ins = document.querySelectorAll("#view tbody tr:last-child input"); ins[0]?.focus(); ins[0]?.select(); }, 30);
+}
+function addJanela(i) {
+  const ini = $(`tIni${i}`).value, fim = $(`tFim${i}`).value;
+  if (!ini || !fim) return toast("Informe início e fim da janela.");
+  if (toMin(fim) <= toMin(ini)) return toast("O fim da janela precisa ser depois do início.");
+  upd(e => { e.funcoes[i].turnos.push({ ini, fim }); e.funcoes[i].turnos.sort((a, b) => a.ini.localeCompare(b.ini)); }, true);
+}
+function removerFuncao(i) {
+  const f = E.funcoes[i], n = E.equipe.filter(c => c.funcaoId === f.id).length;
+  if (n && !confirm(`${n} colaborador(es) estão em "${f.nome}". Excluir mesmo assim? Eles ficarão sem função.`)) return;
+  upd(e => { e.equipe.forEach(c => { if (c.funcaoId === f.id) c.funcaoId = ""; }); e.funcoes.splice(i, 1); }, true);
+}
+
+/* ---- Equipe ---- */
+VIEWS.equipe = () => {
+  const linhas = E.equipe.map((c, i) => {
+    const ativo = c.status === "Ativo";
+    return `<tr><td data-l="#">${i + 1}</td>
+      <td data-l="Nome"><input value="${esc(c.nome)}" onchange="upd(e=>e.equipe[${i}].nome=this.value.trim()||'Sem nome',true)"></td>
+      <td data-l="Função"><select onchange="if(this.value==='__nova'){ir('funcoes');return}upd(e=>e.equipe[${i}].funcaoId=this.value,true)">${opt("", "Sem função", c.funcaoId)}${E.funcoes.map(f => opt(f.id, f.nome, c.funcaoId)).join("")}${opt("__nova", "+ Cadastrar função…", "")}</select>${(() => { const f = funcaoDe(c); return f ? `<div class="func-info">${esc([f.setor, f.turnos.length ? f.turnos.map(t => `${t.ini}–${t.fim}`).join(" / ") : "horário da loja", `mín. ${f.minUtil} útil · ${f.minFeriado} feriado`].filter(Boolean).join(" · "))}</div>` : ""; })()}</td>
+      <td data-l="Carga semanal"><input type="number" min="4" max="44" value="${c.carga}" style="width:80px" onchange="upd(e=>e.equipe[${i}].carga=Number(this.value),true)"></td>
+      <td data-l="Por dia" class="num">${fmtH(horasDiaCol(c))}${c.carga > 42 ? ` <span class="badge b-red">acima de 42h</span>` : ""}</td>
+      <td data-l="Trabalha aos domingos"><select onchange="upd(e=>e.equipe[${i}].domingo=this.value==='1',true)">${opt("1", "Sim, entra no revezamento", c.domingo ? "1" : "0")}${opt("0", "Não", c.domingo ? "1" : "0")}</select></td>
+      <td data-l="WhatsApp"><input value="${esc(c.telefone || "")}" placeholder="(00) 00000-0000" inputmode="tel" oninput="this.value=mascTel(this.value)" onchange="upd(e=>e.equipe[${i}].telefone=this.value)"></td>
+      <td data-l="Status"><button class="toggle ${ativo ? "on" : "off"}" onclick="upd(e=>e.equipe[${i}].status=e.equipe[${i}].status==='Ativo'?'Inativo':'Ativo',true)"><span class="knob"></span>${ativo ? "Ativo" : "Inativo"}</button></td>
+      <td><button class="btn-danger btn-sm" onclick="removerCol(${i})">Excluir</button></td></tr>`;
+  }).join("") || `<tr><td colspan="9" class="empty">Nenhum colaborador cadastrado.</td></tr>`;
+  return `<div class="card"><div class="card-h"><div><h2>Colaboradores</h2><div class="sub">Cada pessoa pode ter uma carga diferente; o sistema calcula a jornada diária e monta o turno. Inativos saem da escala sem perder o histórico.</div></div>
+      <div class="acts"><span class="badge b-blue">${E.equipe.filter(c => c.status === "Ativo").length} ativo(s)</span><button class="btn-primary" onclick="addCol()">+ Adicionar colaborador</button></div></div>
+    <div class="tbl-wrap"><table class="stack"><thead><tr><th>#</th><th>Nome</th><th>Função</th><th>Carga semanal (h)</th><th class="num">Por dia</th><th>Trabalha aos domingos</th><th>WhatsApp (opcional)</th><th>Status</th><th></th></tr></thead><tbody>${linhas}</tbody></table></div>
+    <p class="help" style="margin-top:10px">Para férias, atestados e afastamentos use <a href="#" onclick="ir('ocorrencias');return false">Férias e ausências</a> — assim a pessoa volta sozinha para a escala no fim do período.</p></div>`;
+};
+function addCol() {
+  upd(e => e.equipe.push({ id: uid("col"), nome: `Colaborador ${e.equipe.length + 1}`, funcaoId: e.funcoes[0]?.id || "", carga: Number(e.regras.jornada) || 42, domingo: true, status: "Ativo", telefone: "" }), true);
+  setTimeout(() => { const ins = document.querySelectorAll("#view tbody tr:last-child input"); ins[0]?.focus(); ins[0]?.select(); }, 30);
+}
+function removerCol(i) {
+  const c = E.equipe[i];
+  if (!confirm(`Excluir ${c.nome}? Lançamentos dessa pessoa também serão removidos. Para manter o histórico, marque como Inativo.`)) return;
+  upd(e => {
+    e.equipe.splice(i, 1); delete e.ajustes[c.id];
+    e.ocorrencias = e.ocorrencias.filter(o => o.colId !== c.id); e.compensacoes = e.compensacoes.filter(o => o.colId !== c.id);
+    e.trocas = e.trocas.filter(t => t.colA !== c.id && t.colB !== c.id);
+  }, true);
+}
+
+/* ---------------- Ajuste manual ---------------- */
+function abrirModal(cid, iso) {
+  const c = colById(cid), cel = calc.G[cid][iso];
+  ui.modal = { cid, iso };
+  $("mTitulo").textContent = `${c.nome} · ${DOW[parseISO(iso).getDay()]} ${br(iso)}`;
+  $("mStatus").innerHTML = Object.entries(ST).map(([k, v]) => opt(k, v.label, cel.st)).join("");
+  $("mHorario").value = cel.horario || "";
+  $("mHoras").value = cel.horas || 0;
+  $("modal").classList.add("open");
+}
+function sugerirModal() {
+  const st = $("mStatus").value;
+  if (!ST[st].trab) { $("mHoras").value = 0; $("mHorario").value = ""; }
+  else if (!Number($("mHoras").value)) { const c = colById(ui.modal.cid); $("mHoras").value = horasDiaCol(c); }
+}
+function salvarAjuste() {
+  const { cid, iso } = ui.modal, st = $("mStatus").value;
+  const h = $("mHorario").value.trim().replace(/\s*[-–a]\s*/, "–");
+  const m = h.match(/^(\d{1,2}:\d{2})–(\d{1,2}:\d{2})$/);
+  upd(e => { (e.ajustes[cid] = e.ajustes[cid] || {})[iso] = { st, horario: ST[st].trab ? (h || fmtH(Number($("mHoras").value))) : "", horas: ST[st].trab ? Number($("mHoras").value) || 0 : 0, ini: m ? toMin(m[1]) : null, fim: m ? toMin(m[2]) : null }; }, true);
+  fecharModal(); toast("Dia ajustado manualmente.");
+}
+function removerAjuste() { const { cid, iso } = ui.modal; upd(e => { if (e.ajustes[cid]) delete e.ajustes[cid][iso]; }, true); fecharModal(); toast("Dia voltou para o automático."); }
+function fecharModal() { $("modal").classList.remove("open"); ui.modal = null; }
+function limparAjustes() { if (!confirm("Remover todos os ajustes manuais desta empresa?")) return; upd(e => e.ajustes = {}, true); toast("Ajustes removidos."); }
+
+/* ---------------- Empresas, backup e exemplo ---------------- */
+function trocarEmpresa(id) { E = normalizar(S.empresas[id]); S.ativa = id; ui.col = null; ui.semana = 0; ui.filtro = "todas"; salvar(); render(); }
+function criarEmpresa() { const e = novaEmpresa(); S.empresas[e.id] = e; trocarEmpresa(e.id); ir("empresa"); toast("Nova empresa criada. Preencha os dados."); }
+function excluirEmpresa() {
+  if (!confirm(`Excluir "${nomeEmp()}" e todos os dados dela? Esta ação não pode ser desfeita. Exporte o backup antes, se precisar.`)) return;
+  delete S.empresas[E.id];
+  if (!Object.keys(S.empresas).length) { const e = novaEmpresa(); S.empresas[e.id] = e; }
+  trocarEmpresa(Object.keys(S.empresas)[0]); ir("painel");
+}
+function exportarJSON() {
+  const blob = new Blob([JSON.stringify({ tipo: "eskla-empresa", versao: 2, empresa: E }, null, 2)], { type: "application/json" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = `eskla-${(nomeEmp()).toLowerCase().normalize("NFD").replace(/[^\w]+/g, "-")}-${E.competencia}.json`;
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 500); toast("Backup exportado.");
+}
+function importarJSON(ev) {
+  const file = ev.target.files?.[0]; if (!file) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      const j = JSON.parse(rd.result);
+      const emp = j.empresa && j.empresa.equipe ? j.empresa : (j.equipe ? j : null);
+      if (!emp) throw 0;
+      emp.id = uid("emp"); S.empresas[emp.id] = normalizar(emp); trocarEmpresa(emp.id); toast("Backup importado como nova empresa.");
+    } catch { toast("Arquivo inválido: não é um backup do Eskla."); }
+  };
+  rd.readAsText(file); ev.target.value = "";
+}
+function carregarExemplo() {
+  const e = novaEmpresa(), ano = Number(e.competencia.slice(0, 4)), mes = e.competencia;
+  Object.assign(e.empresa, { razao: "Comércio Exemplo Ltda", fantasia: "Loja Exemplo", ramo: "Farmácia / Drogaria", logradouro: "Rua Principal", numero: "100", bairro: "Centro", cidade: "Cidade Exemplo", uf: "BA", cor: "#1D4ED8" });
+  const h = (a, s, r, f, minimo) => ({ aberto: true, abertura: a, almocoSaida: s, almocoRetorno: r, fechamento: f, minimo, bloqueiaFolga: false });
+  ["segunda", "terca", "quarta", "quinta", "sexta"].forEach(k => e.horarios[k] = h("07:00", "12:00", "13:00", "20:00", 3));
+  e.horarios.terca.bloqueiaFolga = true; // ex.: dia de limpeza e reposição
+  e.horarios.sabado = h("07:00", "12:00", "13:00", "19:00", 3); e.horarios.domingo = h("08:00", "", "", "14:00", 1); e.horarios.feriado = h("08:00", "", "", "14:00", 1);
+  const fAt = { ...novaFuncao("Atendimento", "Loja"), minUtil: 1, minFeriado: 1 };
+  const fCx = { ...novaFuncao("Caixa", "Loja"), minUtil: 1, minFeriado: 0, turnos: [{ ini: "07:00", fim: "11:00" }, { ini: "14:00", fim: "20:00" }] };
+  const fRt = { ...novaFuncao("Farmacêutico", "Técnico"), minUtil: 0, minFeriado: 0 };
+  e.funcoes = [fAt, fCx, fRt];
+  e.equipe = [["Ana", fAt, 42], ["Bruno", fAt, 42], ["Carla", fCx, 40], ["Diego", fAt, 40], ["Elisa", fRt, 42, false], ["Fábio", fCx, 40]]
+    .map(([nome, f, carga, dom = true]) => ({ id: uid("col"), nome, funcaoId: f.id, carga, domingo: dom, status: "Ativo", telefone: "" }));
+  e.feriados = feriadosNacionais(ano).map(([data, descricao]) => ({ id: uid("fer"), data, descricao, abrangencia: "Nacional", tratamento: "FOLGA" }));
+  const fm = e.feriados.filter(f => f.data.startsWith(mes) && parseISO(f.data).getDay() !== 0);
+  if (fm[0]) fm[0].tratamento = "COMP"; if (fm[1]) fm[1].tratamento = "PAGO";
+  e.ocorrencias = [{ id: uid("oc"), colId: e.equipe[2].id, tipo: "FERIAS", inicio: `${mes}-16`, fim: `${mes}-25`, motivo: "Férias (exemplo)" }];
+  S.empresas[e.id] = e; trocarEmpresa(e.id); ir("painel"); toast("Empresa de exemplo criada — dados fictícios.");
+}
+
+/* ---------------- Início ---------------- */
+// Nos testes automáticos (scripts sem navegador) a interface não é iniciada.
+if (!globalThis.__ESCALA_TESTE__) {
+carregar();
+render();
+salvarJa();
+window.addEventListener("resize", () => { if (!window.matchMedia("(max-width: 900px)").matches) document.body.classList.remove("side-open"); });
+document.addEventListener("keydown", ev => { if (ev.key === "Escape") { fecharModal(); document.body.classList.remove("side-open"); } });
+}
+
+</script>
+</body>
+</html>
